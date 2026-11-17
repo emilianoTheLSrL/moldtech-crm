@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b1220">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>MoldTech CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Design system (UI/UX Pro Max: Flat Design, B2B CRM) adaptado a la marca MoldTech */
+:root{
+  --bg:#f8fafc; --card:#ffffff; --fg:#0f172a; --muted:#f1f5f9; --muted-fg:#475569; --border:#e2e8f0;
+  --primary:#263a5e; --on-primary:#ffffff; --accent:#0d7d75; --on-accent:#ffffff; --ring:#2f8fdd; --danger:#dc2626;
+  --s-urg:#dc2626; --s-int:#c2410c; --s-msg:#2563eb; --s-reu:#0d7d75; --s-cli:#15803d; --s-sin:#64748b;
+  --font:"Plus Jakarta Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0b1220; --card:#121b2d; --fg:#e2e8f0; --muted:#1b2740; --muted-fg:#94a3b8; --border:#25324a;
+  --primary:#8fb0e3; --on-primary:#0b1526; --accent:#3cc0b5; --on-accent:#03201d; --danger:#f87171;
+  --s-urg:#f87171; --s-int:#fb923c; --s-msg:#60a5fa; --s-reu:#3cc0b5; --s-cli:#4ade80; --s-sin:#94a3b8; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.5}
+[hidden]{display:none!important}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--ring);outline-offset:2px;border-radius:8px}
+.wrap{max-width:1360px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--border)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding-block:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em;font-size:18px;color:var(--primary);margin-right:8px}
+.brand small{color:var(--accent);font-weight:600}
+.tabs{display:flex;gap:4px;background:var(--muted);padding:4px;border-radius:12px}
+.tab{border:0;background:transparent;padding:8px 14px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted-fg);min-height:40px;transition:background .15s,color .15s}
+.tab[aria-selected="true"]{background:var(--card);color:var(--fg);box-shadow:0 0 0 1px var(--border)}
+.search{flex:1 1 220px;display:flex;align-items:center;gap:8px;background:var(--muted);border-radius:10px;padding:0 12px;min-height:44px}
+.search input{border:0;background:transparent;outline:none;width:100%;font-size:15px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--border);background:var(--card);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px;min-height:44px;text-decoration:none;color:var(--fg);transition:background .15s,border-color .15s}
+.btn:hover{background:var(--muted)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.btn.primary:hover{opacity:.92}
+.btn.accent{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.danger{color:var(--danger)}
+.btn:disabled{opacity:.5;cursor:default}
+.ico{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+main{padding-block:24px 48px;display:flex;flex-direction:column;gap:20px}
+h1{font-size:26px;line-height:1.2;margin:0;letter-spacing:-.02em;text-wrap:balance}
+h2{font-size:17px;margin:0}
+.sub{color:var(--muted-fg);margin:4px 0 0;font-size:14px}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:4px;text-align:left}
+button.kpi:hover{border-color:var(--primary)}
+.kpi b{font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--muted-fg)}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* lists */
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.row{display:flex;align-items:center;gap:12px;padding:12px 16px;border:0;border-bottom:1px solid var(--border);background:transparent;width:100%;text-align:left;min-height:64px}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--muted)}
+.row .main{flex:1;min-width:0;display:flex;flex-direction:column}
+.row .t{font-weight:600;overflow-wrap:anywhere}
+.row .m{font-size:13px;color:var(--muted-fg);overflow-wrap:anywhere}
+.row .when{font-size:13px;font-weight:600;white-space:nowrap}
+.when.late{color:var(--danger)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted-fg);font-size:14px}
+
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--muted);color:var(--muted-fg);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;flex:none;background:currentColor}
+.st-Urgente{color:var(--s-urg)}.st-Interesado{color:var(--s-int)}.st-Mensaje{color:var(--s-msg)}.st-Reunión{color:var(--s-reu)}.st-Cliente{color:var(--s-cli)}.st-Sin.ajuste,.st-Sin{color:var(--s-sin)}
+.chip.warn{background:color-mix(in srgb,var(--s-int) 14%,transparent);color:var(--s-int)}
+.chip.ok{background:color-mix(in srgb,var(--s-cli) 14%,transparent);color:var(--s-cli)}
+
+/* pipeline */
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--muted);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:8px;min-height:200px}
+.col.over{outline:2px dashed var(--primary);outline-offset:-2px}
+.col-h{display:flex;align-items:center;gap:8px;padding:4px 6px 6px;font-weight:600;font-size:14px}
+.col-h .n{margin-left:auto;color:var(--muted-fg);font-variant-numeric:tabular-nums}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;text-align:left;width:100%;transition:border-color .15s}
+.card:hover{border-color:var(--primary)}
+.card .t{font-weight:600;font-size:14px;line-height:1.3;overflow-wrap:anywhere}
+.card .m{font-size:13px;color:var(--muted-fg)}
+.card .a{font-size:12px;color:var(--fg);opacity:.85;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .foot{display:flex;flex-wrap:wrap;gap:6px}
+
+/* table */
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.fchip{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;min-height:36px}
+.fchip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:860px}
+th{text-align:left;font-size:12px;color:var(--muted-fg);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--muted)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--bg);z-index:41;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(15,23,42,.18);animation:slide .2s ease}
+@keyframes slide{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}
+.d-head{background:var(--card);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;gap:12px;align-items:flex-start}
+.d-head .main{flex:1;min-width:0}
+.d-head h2{font-size:20px;letter-spacing:-.01em;overflow-wrap:anywhere}
+.d-body{flex:1;overflow-y:auto;padding:16px 20px 32px;display:flex;flex-direction:column;gap:16px}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.sec h3{margin:0;font-size:14px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.grid2{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:12px;font-weight:600;color:var(--muted-fg)}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--border);background:var(--card);border-radius:10px;padding:10px 12px;font-size:15px;min-height:44px}
+.field textarea{min-height:96px;resize:vertical;line-height:1.45}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.actions .btn{flex:1 1 130px}
+.note{font-size:13px;color:var(--muted-fg);margin:0}
+.warnbox{font-size:13px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--s-int) 12%,transparent);color:var(--fg)}
+.hist{display:flex;flex-direction:column}
+.hist div{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--border);font-size:14px}
+.hist div:first-child{border-top:0}
+.hist small{display:block;color:var(--muted-fg);font-size:12px}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:41;display:grid;place-items:center;padding:16px}
+.mbox{background:var(--bg);border-radius:16px;width:min(620px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(15,23,42,.25)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:16px 20px 0}
+.steps i{height:4px;border-radius:2px;background:var(--border)}
+.steps i.on{background:var(--accent)}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill input{position:absolute;opacity:0;pointer-events:none}
+.pill{position:relative}
+.pill span{display:inline-block;padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--card);font-size:14px;cursor:pointer;min-height:40px}
+.pill input:checked+span{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.pill input:focus-visible+span{outline:3px solid var(--ring);outline-offset:2px}
+
+.login{position:fixed;inset:0;z-index:80;background:var(--bg);display:grid;place-items:center;padding:16px}
+.lbox{width:min(400px,100%);background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:14px}
+.lbox h1{font-size:24px}
+.user{display:flex;align-items:center;gap:8px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--muted);display:grid;place-items:center;font-weight:700;font-size:14px;color:var(--primary)}
+.team{display:flex;flex-wrap:wrap;gap:8px}
+.cartera{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.cartera .seg2{display:flex;gap:4px;background:var(--muted);padding:4px;border-radius:12px;flex-wrap:wrap}
+.cartera .seg2 button{border:0;background:transparent;padding:8px 14px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted-fg);min-height:40px}
+.cartera .seg2 button[aria-pressed="true"]{background:var(--card);color:var(--fg);box-shadow:0 0 0 1px var(--border)}
+.chip.dir{background:color-mix(in srgb,var(--primary) 16%,transparent);color:var(--primary)}
+.chip.eq{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+td select{border:1px solid var(--border);background:var(--card);border-radius:8px;padding:6px 8px;font-size:13px;min-height:36px}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:14px;z-index:60;max-width:calc(100% - 32px)}
+.sync{font-size:12px;color:var(--muted-fg)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.1-4.6A8 8 0 1 1 21 12Z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+</svg>
+
+<header><div class="wrap bar">
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 5 55.4 18.5v27L32 59 8.6 45.5v-27Z" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="M21 43V22l11 13 11-13v21" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="49.5" cy="14.5" r="3.4" fill="#2fa39b"/><circle cx="14.5" cy="49.5" r="3.4" fill="#2fa39b"/></svg>
+    <span>MoldTech <small>CRM</small></span>
+  </div>
+  <div class="tabs" role="tablist" aria-label="Vistas">
+    <button class="tab" role="tab" data-view="hoy" aria-selected="true">Hoy</button>
+    <button class="tab" role="tab" data-view="pipeline" aria-selected="false">Pipeline</button>
+    <button class="tab" role="tab" data-view="lista" aria-selected="false">Clientes</button>
+  </div>
+  <label class="search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Buscar empresa, contacto o correo" aria-label="Buscar"></label>
+  <button class="btn primary" id="btnNuevo" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>Nuevo prospecto</button>
+  <button class="btn ghost user" id="btnUser" type="button" aria-label="Mi cuenta"><span class="avatar" id="avatar">·</span></button>
+</div></header>
+
+<main class="wrap">
+  <div class="cartera" role="group" aria-label="Cartera">
+    <span class="note" style="font-weight:600">Cartera</span>
+    <div class="seg2" id="carteraBar"></div>
+  </div>
+  <!-- HOY -->
+  <section id="v-hoy" class="view">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
+      <div><h1 id="hola">Seguimientos</h1><p class="sub" id="fechaHoy"></p></div>
+      <span class="sync" id="sync">Cargando…</span>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div class="panel">
+      <div class="panel-h"><h2>Para hoy</h2><span class="note" id="hoyN"></span></div>
+      <div id="listaHoy"><p class="empty">Cargando prospectos…</p></div>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2>Próximas reuniones</h2></div>
+      <div id="listaReu"></div>
+    </div>
+  </section>
+
+  <!-- PIPELINE -->
+  <section id="v-pipeline" class="view" hidden>
+    <div><h1>Pipeline</h1><p class="sub">Arrastra una tarjeta para cambiarla de etapa, o ábrela y cambia la etapa en su ficha.</p></div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <!-- LISTA -->
+  <section id="v-lista" class="view" hidden>
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
+      <div><h1>Clientes y prospectos</h1><p class="sub" id="listaN"></p></div>
+      <div class="field" style="min-width:240px"><label for="cfgMail">Correo interno (recibe avisos e invitaciones)</label><input id="cfgMail" type="email" placeholder="correo@moldtech.mx"></div>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="panel tbl-wrap">
+      <table>
+        <thead><tr><th>Empresa</th><th>Contacto</th><th>Cartera</th><th>Etapa</th><th>Estado</th><th>Siguiente acción</th><th>Próximo</th><th>Consentimiento</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- FICHA -->
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle" hidden>
+  <div class="d-head">
+    <div class="main">
+      <h2 id="dTitle"></h2>
+      <p class="sub" id="dSub"></p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px" id="dChips"></div>
+    </div>
+    <button class="btn ghost" type="button" id="dClose" aria-label="Cerrar ficha"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="d-body">
+    <div class="sec">
+      <div class="grid2">
+        <div class="field"><label for="dEtapa">Etapa</label><select id="dEtapa"></select></div>
+        <div class="field"><label for="dEstado">Estado</label><select id="dEstado"></select></div>
+        <div class="field"><label for="dCartera">Cartera (quién lo atiende)</label><select id="dCartera"><option value="">Sin asignar</option><option value="Dirección">Dirección</option><option value="Equipo">Equipo</option></select></div>
+      </div>
+      <p class="note" id="dAccion"></p>
+    </div>
+
+    <div class="sec">
+      <h3>Mensaje de seguimiento</h3>
+      <div class="warnbox" id="dConsent" hidden></div>
+      <div class="field"><label for="dSubj">Asunto del correo</label><input id="dSubj" value="MoldTech · seguimiento Plastimagen 2026"></div>
+      <div class="field"><label for="dMsg">Mensaje</label><textarea id="dMsg"></textarea></div>
+      <div class="grid2">
+        <div class="field"><label for="dFrom">Enviar desde</label><select id="dFrom"></select></div>
+        <div class="field"><label for="dSig">Firma (imagen al final)</label><select id="dSig"></select></div>
+        <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="dCc" type="checkbox" checked style="width:20px;height:20px;min-height:0">Mandarme copia</label>
+      </div>
+      <button class="btn primary" type="button" id="aSend"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>Enviar correo ahora</button>
+      <div class="confirm" id="sendConfirm" hidden>
+        <p class="note" id="sendTxt"></p>
+        <div class="actions"><button class="btn" type="button" id="aSendNo">Cancelar</button><button class="btn primary" type="button" id="aSendYes">Sí, enviar</button></div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" id="aCopy"><svg class="ico" aria-hidden="true"><use href="#i-copy"/></svg>Copiar</button>
+        <a class="btn accent" id="aWa" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp</a>
+        <a class="btn" id="aMail" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>Abrir en mi correo</a>
+      </div>
+      <p class="note">El correo se envía solo, desde la cuenta elegida, y queda en el historial. Las respuestas del prospecto te llegan a tu correo de "Mi cuenta". WhatsApp sí lo tienes que mandar tú.</p>
+    </div>
+
+    <div class="sec">
+      <h3>Registrar contacto</h3>
+      <div class="field"><label for="dLog">¿Qué pasó?</label><textarea id="dLog" placeholder="Ej. Le mandé WhatsApp, quedó de revisar con su gerente"></textarea></div>
+      <div class="grid2">
+        <div class="field"><label for="dProx">Siguiente seguimiento</label><input id="dProx" type="date"></div>
+        <div class="field" style="justify-content:flex-end"><button class="btn primary" type="button" id="aLog"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Guardar contacto</button></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Agendar reunión</h3>
+      <div class="grid2">
+        <div class="field"><label for="rTipo">Tipo</label><select id="rTipo"><option>Demo</option><option>Visita a planta</option><option>Llamada</option></select></div>
+        <div class="field"><label for="rFecha">Fecha</label><input id="rFecha" type="date"></div>
+        <div class="field"><label for="rHora">Hora</label><input id="rHora" type="time" value="10:00"></div>
+        <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="rInv" type="checkbox" checked style="width:20px;height:20px;min-height:0">Invitar al prospecto</label>
+      </div>
+      <div class="field"><span style="font-size:12px;font-weight:600;color:var(--muted-fg)">Invitar al equipo</span><div class="team pills" id="rTeam"></div></div>
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="rMeet" type="checkbox" checked style="width:20px;height:20px;min-height:0">Agregar link de Google Meet</label>
+      <button class="btn" type="button" id="aAgendar"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg>Agendar y enviar invitación</button>
+      <p class="note" id="dReunion"></p>
+    </div>
+
+    <div class="sec">
+      <h3>Datos</h3>
+      <div class="grid2">
+        <div class="field"><label for="f_nombre">Nombre</label><input id="f_nombre"></div>
+        <div class="field"><label for="f_empresa">Empresa</label><input id="f_empresa"></div>
+        <div class="field"><label for="f_puesto">Puesto</label><input id="f_puesto"></div>
+        <div class="field"><label for="f_tel">Teléfono</label><input id="f_tel" type="tel"></div>
+        <div class="field"><label for="f_email">Correo</label><input id="f_email" type="email"></div>
+        <div class="field"><label for="f_prioridad">Prioridad</label><select id="f_prioridad"><option>Alta</option><option>Media</option><option>Baja</option><option>Archivar</option></select></div>
+        <div class="field"><label for="f_maquinas">Máquinas</label><input id="f_maquinas" inputmode="numeric"></div>
+        <div class="field"><label for="f_tipoMaquinas">Tipo de máquinas</label><input id="f_tipoMaquinas"></div>
+      </div>
+      <div class="field"><label for="f_ubicacion">Ubicación</label><input id="f_ubicacion"></div>
+      <a class="btn ghost" id="aMaps" target="_blank" rel="noopener" style="justify-content:flex-start"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg>Ver en Google Maps</a>
+      <div class="field"><label for="f_notas">Notas</label><textarea id="f_notas"></textarea></div>
+      <p class="note" id="dExtra"></p>
+      <div class="actions">
+        <button class="btn primary" type="button" id="aSave">Guardar cambios</button>
+        <a class="btn" id="aTel" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg>Llamar</a>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3>Historial</h3>
+      <div class="hist" id="dHist"></div>
+    </div>
+
+    <div class="sec" id="delSec">
+      <button class="btn danger" type="button" id="aDel">Eliminar registro</button>
+      <div id="delConfirm" hidden>
+        <p class="note">¿Eliminar este prospecto? No se puede deshacer.</p>
+        <div class="actions"><button class="btn" type="button" id="aDelNo">Cancelar</button><button class="btn" type="button" id="aDelYes" style="background:var(--danger);border-color:var(--danger);color:#fff">Sí, eliminar</button></div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- NUEVO PROSPECTO -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" hidden>
+  <form class="mbox" id="nForm" novalidate>
+    <div class="steps" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px 0">
+      <div><p class="note" id="mStep">Paso 1 de 4</p><h2 id="mTitle" style="font-size:22px">Datos generales</h2></div>
+      <button class="btn ghost" type="button" id="mClose" aria-label="Cerrar"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="d-body" style="padding-top:12px">
+      <div class="nstep" data-s="1">
+        <div class="sec">
+          <div class="grid2">
+            <div class="field"><label for="n_nombre">Nombre *</label><input id="n_nombre" autocomplete="name"></div>
+            <div class="field"><label for="n_empresa">Empresa *</label><input id="n_empresa" autocomplete="organization"></div>
+            <div class="field"><label for="n_puesto">Puesto</label><input id="n_puesto"></div>
+            <div class="field"><label for="n_tel">Celular</label><input id="n_tel" type="tel"></div>
+          </div>
+          <div class="field"><label for="n_email">Correo</label><input id="n_email" type="email"></div>
+          <p class="note">Celular o correo, al menos uno.</p>
+        </div>
+      </div>
+      <div class="nstep" data-s="2" hidden>
+        <div class="sec">
+          <h3>Problemas que busca resolver</h3>
+          <div class="pills" id="n_prob">
+            <label class="pill"><input type="checkbox" value="Paros no planeados"><span>Paros no planeados</span></label>
+            <label class="pill"><input type="checkbox" value="Scrap / calidad"><span>Scrap / calidad</span></label>
+            <label class="pill"><input type="checkbox" value="Mantenimiento"><span>Mantenimiento</span></label>
+            <label class="pill"><input type="checkbox" value="Consumo de energía"><span>Consumo de energía</span></label>
+            <label class="pill"><input type="checkbox" value="Conteo de ciclos"><span>Conteo de ciclos</span></label>
+            <label class="pill"><input type="checkbox" value="Monitoreo en tiempo real"><span>Monitoreo en tiempo real</span></label>
+            <label class="pill"><input type="checkbox" value="Reportes manuales"><span>Reportes manuales</span></label>
+          </div>
+          <div class="field"><label for="n_otro">Otro:</label><input id="n_otro"></div>
+          <div class="field"><label for="n_interes">¿Qué le interesó de MoldTech?</label><textarea id="n_interes"></textarea></div>
+        </div>
+      </div>
+      <div class="nstep" data-s="3" hidden>
+        <div class="sec">
+          <div class="grid2">
+            <div class="field"><label for="n_maq">Núm. de máquinas</label><input id="n_maq" inputmode="numeric"></div>
+            <div class="field"><label for="n_tipo">Tipo / marca</label><input id="n_tipo" placeholder="Inyectoras Haitian, extrusoras…"></div>
+            <div class="field"><label for="n_mon">¿Tienen monitoreo?</label><select id="n_mon"><option value="">—</option><option>Sí</option><option>No</option><option>No lo sé</option></select></div>
+            <div class="field"><label for="n_ubi">Ubicación de la planta</label><input id="n_ubi"></div>
+          </div>
+          <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="n_consent" type="checkbox" style="width:20px;height:20px;min-height:0">Acepta recibir comunicaciones de MoldTech</label>
+        </div>
+      </div>
+      <div class="nstep" data-s="4" hidden>
+        <div class="sec">
+          <h3>Siguiente reunión</h3>
+          <div class="grid2">
+            <div class="field"><label for="n_rtipo">Tipo</label><select id="n_rtipo"><option>Demo</option><option>Visita a planta</option><option>Llamada</option></select></div>
+            <div class="field"><label for="n_rfecha">Fecha *</label><input id="n_rfecha" type="date"></div>
+            <div class="field"><label for="n_rhora">Hora *</label><input id="n_rhora" type="time" value="10:00"></div>
+            <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="n_rinv" type="checkbox" checked style="width:20px;height:20px;min-height:0">Mandar invitación</label>
+          </div>
+          <div class="field"><label for="n_notas">Notas</label><textarea id="n_notas"></textarea></div>
+        </div>
+      </div>
+      <p class="note" id="nMsg" role="alert" style="color:var(--danger)"></p>
+      <div class="actions"><button class="btn" type="button" id="nBack">Cancelar</button><button class="btn primary" type="button" id="nNext">Siguiente</button></div>
+    </div>
+  </form>
+</div>
+
+<div class="login" id="login">
+  <form class="lbox" id="lForm" novalidate>
+    <div class="brand" style="font-size:20px"><svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 5 55.4 18.5v27L32 59 8.6 45.5v-27Z" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/><path d="M21 43V22l11 13 11-13v21" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="49.5" cy="14.5" r="3.4" fill="#2fa39b"/><circle cx="14.5" cy="49.5" r="3.4" fill="#2fa39b"/></svg><span>MoldTech <small>CRM</small></span></div>
+    <h1 id="lTitle">Inicia sesión</h1>
+    <div id="lStep1">
+      <div class="field"><label for="lUser">Usuario</label><input id="lUser" autocomplete="username" autocapitalize="none"></div>
+      <div class="field" style="margin-top:10px"><label for="lPass">Contraseña</label><input id="lPass" type="password" autocomplete="current-password"></div>
+    </div>
+    <div id="lStep2" hidden>
+      <p class="note">Es tu primer ingreso. Crea una contraseña nueva de al menos 8 caracteres.</p>
+      <div class="field"><label for="lNew">Nueva contraseña</label><input id="lNew" type="password" autocomplete="new-password"></div>
+      <div class="field" style="margin-top:10px"><label for="lNew2">Repítela</label><input id="lNew2" type="password" autocomplete="new-password"></div>
+    </div>
+    <p class="note" id="lMsg" role="alert" style="color:var(--danger)"></p>
+    <button class="btn primary" type="submit" id="lBtn">Entrar</button>
+  </form>
+</div>
+
+<div class="modal" id="acct" role="dialog" aria-modal="true" aria-labelledby="aTitle" hidden>
+  <div class="mbox"><div class="d-body">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2 id="aTitle" style="font-size:20px">Mi cuenta</h2><button class="btn ghost" type="button" id="aClose" aria-label="Cerrar"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    <div class="sec">
+      <h3 id="aName"></h3>
+      <div class="field"><label for="aMyMail">Mi correo (invitaciones y respuestas de prospectos)</label><input id="aMyMail" type="email" placeholder="tu@gmail.com"></div>
+      <button class="btn" type="button" id="aMailSave">Guardar correo</button>
+    </div>
+    <div class="sec">
+      <h3>Cambiar contraseña</h3>
+      <div class="field"><label for="aOld">Contraseña actual</label><input id="aOld" type="password" autocomplete="current-password"></div>
+      <div class="field"><label for="aNew">Nueva contraseña (mín. 8)</label><input id="aNew" type="password" autocomplete="new-password"></div>
+      <button class="btn" type="button" id="aPassSave">Cambiar contraseña</button>
+    </div>
+    <button class="btn danger" type="button" id="aLogout">Cerrar sesión</button>
+  </div></div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>window.onerror=function(m,u,l,c){var e=document.getElementById("lMsg");if(e)e.textContent="Error: "+m+" ("+l+":"+c+")";};</script>
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const ETAPAS = ['Urgente','Interesado','Mensaje','Reunión','Cliente','Sin ajuste'];
+  const ETAPA_LBL = {Urgente:'Urgente',Interesado:'Interesados',Mensaje:'Mensaje',Reunión:'Reunión agendada',Cliente:'Cliente','Sin ajuste':'Sin ajuste'};
+  const ESTADOS = ['Nuevo','Contactado','Respondió','Reunión agendada','Propuesta enviada','Ganado','Perdido','Archivado'];
+  const PRIO = {Alta:0,Media:1,Baja:2,Archivar:3};
+  const store = { get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,v); }catch(e){} } };
+  let token = store.get('mt_token'), equipo = [], yo = null, remitentes = [], firmas = [], miClave = '';
+  const API = 'https://script.google.com/macros/s/AKfycbzipZWKE5zs1webZFRQR06cWPmoTcQ6V1J3nCj1l4vHdMZXSPoAudPcWb6LTE982z4/exec';
+  const raw = async (fn, ...args) => {
+    let r;
+    try { r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn, args }) }); }
+    catch (e) { throw new Error('Sin conexión. Revisa tu internet e inténtalo de nuevo.'); }
+    const j = await r.json();
+    if (j.error) throw new Error(j.error);
+    return j.result;
+  };
+  const gs = (fn, ...a) => raw(fn, token, ...a).catch(e => { if (String(e && e.message || e).includes('AUTH')) { mostrarLogin(); } throw e; });
+  let data = [], view = 'hoy', filtro = 'Todos', abierto = null, usuario = '';
+  const hoyISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+  const fmtD = iso => { if(!iso) return ''; const [y,m,d] = iso.slice(0,10).split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('es-MX',{day:'numeric',month:'short'}); };
+  function toast(t){ const el=$('#toast'); el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,2600); }
+  const stCls = e => 'st-' + String(e).split(' ')[0];
+  const chipEtapa = e => `<span class="chip ${stCls(e)}"><span class="dot"></span>${esc(ETAPA_LBL[e]||e)}</span>`;
+  const chipCons = c => c === 'Sí' ? '<span class="chip ok">Acepta mensajes</span>' : `<span class="chip warn">Consentimiento: ${esc(c||'Sin dato')}</span>`;
+
+  /* ---------- carga ---------- */
+  async function cargar(){
+    try{
+      const d = await gs('init');
+      data = d.registros; usuario = d.nombre; equipo = d.equipo || []; remitentes = d.remitentes || []; firmas = d.firmas || []; miClave = d.usuario || ''; $('#cfgMail').value = d.correoInterno || '';
+      $('#avatar').textContent = (d.nombre||'?').slice(0,1).toUpperCase(); $('#login').hidden = true;
+      $('#sync').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+      render();
+      if (abierto) { const r = data.find(x=>x.id===abierto.id); if (r && document.activeElement && !$('#drawer').contains(document.activeElement)) llenarFicha(r); }
+    }catch(e){ $('#sync').textContent = 'Sin conexión'; if(!data.length) $('#listaHoy').innerHTML = '<p class="empty">No se pudo cargar. Revisa tu conexión y recarga la página.</p>'; }
+  }
+  setInterval(()=>{ if(token && !document.hidden && $('#modal').hidden) cargar(); }, 60000);
+
+  /* ---------- filtros ---------- */
+  const CARTERAS = [['todas','Todas'],['Dirección','Dirección'],['Equipo','Equipo'],['','Sin asignar']];
+  let cartera = store.get('mt_cartera') || 'todas';
+  const enCartera = r => cartera==='todas' || (r.cartera||'') === cartera;
+  const q = () => $('#q').value.trim().toLowerCase();
+  const match = r => enCartera(r) && (!q() || [r.empresa,r.nombre,r.email,r.tel,r.puesto].join(' ').toLowerCase().includes(q()));
+  const chipCart = c => c==='Dirección' ? '<span class="chip dir">Dirección</span>' : c==='Equipo' ? '<span class="chip eq">Equipo</span>' : '';
+  const ordenar = (a,b) => (PRIO[a.prioridad]??4)-(PRIO[b.prioridad]??4) || String(a.proximo||'9').localeCompare(String(b.proximo||'9')) || a.empresa.localeCompare(b.empresa);
+
+  function render(){
+    const hoy = hoyISO();
+    $('#carteraBar').innerHTML = CARTERAS.map(([v,l]) => `<button type="button" data-cart="${esc(v)}" aria-pressed="${v===cartera}">${esc(l)} · ${v==='todas'?data.length:data.filter(r=>(r.cartera||'')===v).length}</button>`).join('');
+    $('#fechaHoy').textContent = new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
+    const activos = data.filter(r => enCartera(r) && r.etapa !== 'Sin ajuste' && !['Ganado','Perdido','Archivado'].includes(r.estado));
+    const pendientes = activos.filter(r => (r.proximo && r.proximo <= hoy) || (r.etapa==='Urgente' && r.estado==='Nuevo'));
+    const venc = activos.filter(r => r.proximo && r.proximo < hoy).length;
+    const reus = data.filter(r => enCartera(r) && r.reunion && r.reunion.slice(0,10) >= hoy).sort((a,b)=>a.reunion.localeCompare(b.reunion));
+    const sinContacto = activos.filter(r => r.estado==='Nuevo').length;
+    $('#kpis').innerHTML = [
+      ['Para hoy', pendientes.length, 'hoy'],
+      ['Seguimientos vencidos', venc, 'hoy'],
+      ['Sin contactar', sinContacto, 'lista'],
+      ['Reuniones próximas', reus.length, 'hoy']
+    ].map(([l,n,v]) => `<button type="button" class="kpi" data-go="${v}"><b>${n}</b><span>${l}</span></button>`).join('');
+    const lst = pendientes.filter(match).sort(ordenar);
+    $('#hoyN').textContent = lst.length ? lst.length + ' prospectos' : '';
+    $('#listaHoy').innerHTML = lst.length ? lst.map(r => {
+      const late = r.proximo && r.proximo < hoy;
+      const when = r.proximo ? (late ? 'Vencido · ' + fmtD(r.proximo) : 'Hoy') : 'Contactar';
+      return `<button type="button" class="row" data-id="${esc(r.id)}">${chipEtapa(r.etapa)}<span class="main"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)} · ${esc(r.accion || 'Dar seguimiento')}</span></span>${chipCart(r.cartera)}<span class="when ${late?'late':''}">${when}</span></button>`;
+    }).join('') : '<p class="empty">No hay seguimientos pendientes para hoy. Revisa el pipeline para elegir a quién contactar.</p>';
+    $('#listaReu').innerHTML = reus.length ? reus.map(r => `<button type="button" class="row" data-id="${esc(r.id)}"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg><span class="main"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.reunion)}</span></span></button>`).join('') : '<p class="empty">Aún no hay reuniones agendadas. Agenda una desde la ficha de un prospecto.</p>';
+
+    // pipeline
+    $('#board').innerHTML = ETAPAS.map(e => {
+      const items = data.filter(r => r.etapa===e && match(r)).sort(ordenar);
+      return `<section class="col" data-etapa="${esc(e)}"><div class="col-h ${stCls(e)}"><span class="dot"></span><span style="color:var(--fg)">${esc(ETAPA_LBL[e])}</span><span class="n">${items.length}</span></div>` +
+        items.map(r => `<button type="button" class="card" draggable="true" data-id="${esc(r.id)}"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)}${r.puesto? ' · '+esc(r.puesto):''}</span><span class="a">${esc(r.accion||'')}</span><span class="foot">${chipCart(r.cartera)}<span class="chip">${esc(r.estado)}</span>${r.proximo?`<span class="chip">${fmtD(r.proximo)}</span>`:''}${r.maquinas?`<span class="chip">${esc(r.maquinas)} máq.</span>`:''}</span></button>`).join('') + '</section>';
+    }).join('');
+
+    // lista
+    const fl = ['Todos', ...ETAPAS, 'Aceptan mensajes'];
+    $('#filters').innerHTML = fl.map(f => `<button type="button" class="fchip" data-f="${esc(f)}" aria-pressed="${f===filtro}">${esc(ETAPA_LBL[f]||f)} · ${f==='Todos'?data.filter(enCartera).length:f==='Aceptan mensajes'?data.filter(r=>enCartera(r)&&r.consentimiento==='Sí').length:data.filter(r=>enCartera(r)&&r.etapa===f).length}</button>`).join('');
+    const rows = data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Aceptan mensajes' ? r.consentimiento==='Sí' : r.etapa===filtro))).sort(ordenar);
+    $('#listaN').textContent = rows.length + ' de ' + data.length + ' registros';
+    $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option></select></td><td>${chipEtapa(r.etapa)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
+  }
+
+  /* ---------- navegación ---------- */
+  function setView(v){ view=v; document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected', t.dataset.view===v)); ['hoy','pipeline','lista'].forEach(x=>$('#v-'+x).hidden = x!==v); }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
+  $('#q').addEventListener('input', render);
+  document.addEventListener('click', e => {
+    if (e.target.closest('select')) return;
+    const cb = e.target.closest('[data-cart]'); if (cb) { cartera = cb.dataset.cart; store.set('mt_cartera', cartera); render(); return; }
+    const go = e.target.closest('[data-go]'); if (go) { setView(go.dataset.go); return; }
+    const f = e.target.closest('[data-f]'); if (f) { filtro = f.dataset.f; render(); return; }
+    const it = e.target.closest('[data-id]'); if (it && !$('#drawer').contains(it)) abrir(it.dataset.id);
+  });
+  $('#tbody').addEventListener('change', e => { const s=e.target.closest('[data-cartsel]'); if(!s) return; const r=data.find(x=>x.id===s.dataset.cartsel); if(!r) return; const old=r.cartera||'Sin asignar'; r.cartera=s.value; guardar(r,'Cartera: '+old+' → '+(r.cartera||'Sin asignar')).then(()=>toast('Cartera actualizada')).catch(()=>{}); });
+  $('#tbody').addEventListener('keydown', e => { if (e.key==='Enter' && e.target.dataset.id) abrir(e.target.dataset.id); });
+
+  // drag & drop
+  let dragId = null;
+  $('#board').addEventListener('dragstart', e => { const c=e.target.closest('.card'); if(c){ dragId=c.dataset.id; e.dataTransfer.effectAllowed='move'; } });
+  $('#board').addEventListener('dragover', e => { const col=e.target.closest('.col'); if(col&&dragId){ e.preventDefault(); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); col.classList.add('over'); } });
+  $('#board').addEventListener('drop', e => { const col=e.target.closest('.col'); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); if(!col||!dragId) return; e.preventDefault(); const r=data.find(x=>x.id===dragId); dragId=null; if(r && r.etapa!==col.dataset.etapa){ const old=r.etapa; r.etapa=col.dataset.etapa; render(); guardar(r, 'Etapa: '+old+' → '+r.etapa); } });
+
+  /* ---------- ficha ---------- */
+  const onlyDigits = t => String(t||'').replace(/\D/g,'');
+  function waNum(t){ let d = onlyDigits(t); if (d.length===10) d = '52'+d; return d; }
+  function llenarFicha(r){
+    abierto = r;
+    $('#dTitle').textContent = r.empresa || 'Sin empresa';
+    $('#dSub').textContent = [r.nombre, r.puesto].filter(Boolean).join(' · ');
+    $('#dChips').innerHTML = chipEtapa(r.etapa) + (r.prioridad?`<span class="chip">Prioridad ${esc(r.prioridad)}</span>`:'') + chipCons(r.consentimiento) + (r.origen?`<span class="chip">${esc(r.origen)}</span>`:'');
+    $('#dEtapa').innerHTML = ETAPAS.map(e=>`<option value="${esc(e)}" ${e===r.etapa?'selected':''}>${esc(ETAPA_LBL[e])}</option>`).join('');
+    $('#dCartera').value = r.cartera || '';
+    $('#dFrom').innerHTML = (remitentes.length?remitentes:['Cuenta MoldTech']).map(m=>`<option>${esc(m)}</option>`).join('');
+    $('#sendConfirm').hidden = true; $('#aSend').hidden = false;
+    $('#dSig').innerHTML = firmas.map(f=>`<option value="${esc(f.k)}" ${f.k===miClave?'selected':''}>${esc(f.n)}</option>`).join('') + '<option value="">Sin firma</option>';
+    sigSync();
+    $('#dEstado').innerHTML = ESTADOS.map(e=>`<option ${e===r.estado?'selected':''}>${esc(e)}</option>`).join('');
+    $('#dAccion').textContent = r.accion ? 'Siguiente acción sugerida: ' + r.accion : '';
+    $('#dMsg').value = r.mensaje || ('Hola' + (r.nombre && r.nombre!=='Por identificar' ? ', '+r.nombre.split(' ')[0] : '') + '. Te contacto del equipo MoldTech a raíz de Plastimagen 2026. ¿Podemos agendar 15 minutos para mostrarte cómo monitorear tu producción en tiempo real?');
+    const c = $('#dConsent');
+    if (r.consentimiento !== 'Sí') { c.hidden=false; c.textContent = r.consentimiento==='No' ? 'No aceptó comunicaciones comerciales en el evento. Manda solo un seguimiento puntual de lo que platicaron, sin promociones.' : 'No hay registro de consentimiento. Confírmalo en el primer mensaje.'; } else c.hidden = true;
+    ['nombre','empresa','puesto','tel','email','maquinas','tipoMaquinas','ubicacion','notas'].forEach(k => $('#f_'+k).value = r[k]||'');
+    $('#f_prioridad').value = r.prioridad || 'Media';
+    $('#dExtra').textContent = [r.senal && 'Señal: '+r.senal, r.motivo && 'Evidencia: '+r.motivo, r.alertas && 'Alertas: '+r.alertas].filter(Boolean).join(' · ');
+    $('#dProx').value = r.proximo || ''; $('#dLog').value = '';
+    $('#dReunion').textContent = r.reunion ? 'Reunión agendada: ' + r.reunion : '';
+    $('#rFecha').value = '';
+    $('#rTeam').innerHTML = equipo.filter(u=>u.email).map(u=>`<label class="pill"><input type="checkbox" value="${esc(u.email)}"><span>${esc(u.nombre)}</span></label>`).join('') || '<span class="note">Nadie del equipo ha puesto su correo en "Mi cuenta".</span>';
+    $('#dHist').innerHTML = (r.historial||[]).slice().reverse().map(h=>`<div><span class="dot" style="color:var(--accent);margin-top:7px"></span><span>${esc(h.txt)}<small>${new Date(h.t).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} · ${esc(h.quien||'')}</small></span></div>`).join('') || '<p class="note">Sin movimientos todavía.</p>';
+    $('#delConfirm').hidden = true; $('#aDel').hidden = false;
+    updLinks();
+  }
+  function updLinks(){
+    const r = abierto; if(!r) return;
+    const msg = $('#dMsg').value, tel = $('#f_tel').value, mail = $('#f_email').value;
+    const wa=$('#aWa'); if (onlyDigits(tel).length>=10){ wa.href='https://wa.me/'+waNum(tel)+'?text='+encodeURIComponent(msg); wa.removeAttribute('aria-disabled'); wa.style.opacity=''; } else { wa.removeAttribute('href'); wa.setAttribute('aria-disabled','true'); wa.style.opacity='.5'; }
+    const ml=$('#aMail'); if (mail){ ml.href='mailto:'+encodeURIComponent(mail)+'?subject='+encodeURIComponent('MoldTech · seguimiento Plastimagen 2026')+'&body='+encodeURIComponent(msg); ml.style.opacity=''; } else { ml.removeAttribute('href'); ml.style.opacity='.5'; }
+    const tl=$('#aTel'); if (tel){ tl.href='tel:'+onlyDigits(tel); tl.style.opacity=''; } else { tl.removeAttribute('href'); tl.style.opacity='.5'; }
+    const ub=$('#f_ubicacion').value; $('#aMaps').href = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(ub || r.empresa);
+  }
+  ['dMsg','f_tel','f_email','f_ubicacion'].forEach(id => $('#'+id).addEventListener('input', updLinks));
+  function abrir(id){ const r=data.find(x=>x.id===id); if(!r) return; llenarFicha(r); $('#scrim').hidden=false; $('#drawer').hidden=false; $('#dClose').focus(); }
+  function cerrar(){ $('#scrim').hidden=true; $('#drawer').hidden=true; abierto=null; }
+  $('#dClose').addEventListener('click', cerrar); $('#scrim').addEventListener('click', () => { if(!$('#acct').hidden){ $('#acct').hidden=true; if($('#drawer').hidden) $('#scrim').hidden=true; } else if(!$('#modal').hidden) cerrarModal(); else cerrar(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape'){ if(!$('#modal').hidden) cerrarModal(); else if(!$('#drawer').hidden) cerrar(); } });
+
+  async function guardar(r, nota){
+    try{ const s = await gs('guardar', r, nota||''); const i=data.findIndex(x=>x.id===s.id); if(i>=0) data[i]=s; else data.push(s); render(); if(abierto && abierto.id===s.id) llenarFicha(s); return s; }
+    catch(e){ toast('No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.'); throw e; }
+  }
+  $('#dEtapa').addEventListener('change', () => { const r=abierto, old=r.etapa; r.etapa=$('#dEtapa').value; guardar(r,'Etapa: '+old+' → '+r.etapa).then(()=>toast('Etapa actualizada')); });
+  $('#dCartera').addEventListener('change', () => { const r=abierto, old=r.cartera||'Sin asignar'; r.cartera=$('#dCartera').value; guardar(r,'Cartera: '+old+' → '+(r.cartera||'Sin asignar')).then(()=>toast('Cartera actualizada')); });
+  $('#dEstado').addEventListener('change', () => { const r=abierto, old=r.estado; r.estado=$('#dEstado').value; guardar(r,'Estado: '+old+' → '+r.estado).then(()=>toast('Estado actualizado')); });
+  $('#aSend').addEventListener('click', () => {
+    const r=abierto, mail=$('#f_email').value.trim();
+    if(!mail){ toast('Este prospecto no tiene correo. Agrégalo en Datos y guarda.'); return; }
+    if(!$('#dMsg').value.trim()){ toast('Escribe el mensaje'); return; }
+    $('#sendTxt').textContent = '¿Enviar este correo a ' + mail + ' desde ' + $('#dFrom').value + ($('#dSig').value ? ' con la firma de ' + $('#dSig').selectedOptions[0].textContent : ' sin firma') + '?';
+    $('#sendConfirm').hidden=false; $('#aSend').hidden=true;
+  });
+  function sigSync(){ const f=firmas.find(x=>x.k===$('#dSig').value); if(f && f.email && remitentes.includes(f.email)) $('#dFrom').value=f.email; }
+  $('#dSig').addEventListener('change', sigSync);
+  $('#aSendNo').addEventListener('click', () => { $('#sendConfirm').hidden=true; $('#aSend').hidden=false; });
+  $('#aSendYes').addEventListener('click', async () => {
+    const r=abierto, b=$('#aSendYes'); b.disabled=true; b.textContent='Enviando…';
+    try{
+      if ($('#f_email').value.trim() !== (r.email||'')) { r.email=$('#f_email').value.trim(); await guardar(r,'Correo del prospecto actualizado'); }
+      const s = await gs('enviarCorreo', r.id, $('#dSubj').value.trim(), $('#dMsg').value, $('#dFrom').value, $('#dCc').checked, $('#dSig').value);
+      const i=data.findIndex(x=>x.id===s.id); if(i>=0) data[i]=s; render(); llenarFicha(s); toast('Correo enviado a '+s.email);
+    }catch(e){ toast(String(e&&e.message||e).replace(/^Error:\s*/,'') || 'No se pudo enviar'); $('#sendConfirm').hidden=true; $('#aSend').hidden=false; }
+    finally{ b.disabled=false; b.textContent='Sí, enviar'; }
+  });
+  $('#aCopy').addEventListener('click', () => { const t=$('#dMsg').value; navigator.clipboard.writeText(t).then(()=>toast('Mensaje copiado')).catch(()=>{ $('#dMsg').select(); toast('Texto seleccionado: cópialo con el menú'); }); });
+  $('#aLog').addEventListener('click', async () => {
+    const r=abierto, txt=$('#dLog').value.trim(), prox=$('#dProx').value;
+    if(!txt && prox===(r.proximo||'')){ toast('Escribe qué pasó o cambia la fecha de seguimiento'); return; }
+    if(r.estado==='Nuevo') r.estado='Contactado';
+    r.proximo = prox; r.mensaje = $('#dMsg').value;
+    const b=$('#aLog'); b.disabled=true;
+    try{ await guardar(r, (txt||'Seguimiento reprogramado') + (prox ? ' · siguiente: '+fmtD(prox) : '')); toast('Contacto guardado'); } finally { b.disabled=false; }
+  });
+  $('#aSave').addEventListener('click', async () => {
+    const r=abierto; ['nombre','empresa','puesto','tel','email','maquinas','tipoMaquinas','ubicacion','notas'].forEach(k => r[k]=$('#f_'+k).value.trim()); r.prioridad=$('#f_prioridad').value; r.mensaje=$('#dMsg').value;
+    const b=$('#aSave'); b.disabled=true; try{ await guardar(r,'Datos actualizados'); toast('Cambios guardados'); } finally { b.disabled=false; }
+  });
+  $('#aAgendar').addEventListener('click', async () => {
+    const r=abierto, f=$('#rFecha').value, h=$('#rHora').value, t=$('#rTipo').value, inv=$('#rInv').checked;
+    if(!f||!h){ toast('Elige fecha y hora'); return; }
+    if(inv && !r.email){ toast('Este prospecto no tiene correo; agrégalo en Datos o quita la invitación'); return; }
+    const b=$('#aAgendar'); b.disabled=true; b.textContent='Agendando…';
+    const team=[...document.querySelectorAll('#rTeam input:checked')].map(i=>i.value);
+    try{ const s = await gs('agendar', r.id, f, h, t, inv, team, $('#rMeet').checked); const i=data.findIndex(x=>x.id===s.id); data[i]=s; render(); llenarFicha(s); toast(inv?'Reunión agendada e invitación enviada':'Reunión agendada'); }
+    catch(e){ toast('No se pudo agendar: ' + (e && e.message ? e.message : 'revisa la conexión')); }
+    finally{ b.disabled=false; b.innerHTML='<svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg>Agendar y enviar invitación'; }
+  });
+  $('#aDel').addEventListener('click', () => { $('#delConfirm').hidden=false; $('#aDel').hidden=true; });
+  $('#aDelNo').addEventListener('click', () => { $('#delConfirm').hidden=true; $('#aDel').hidden=false; });
+  $('#aDelYes').addEventListener('click', async () => { const id=abierto.id; try{ await gs('borrar', id); data=data.filter(x=>x.id!==id); cerrar(); render(); toast('Registro eliminado'); }catch(e){ toast('No se pudo eliminar'); } });
+  $('#cfgMail').addEventListener('change', async () => { try{ await gs('guardarConfig', $('#cfgMail').value.trim()); toast('Correo interno guardado'); }catch(e){ toast('No se pudo guardar el correo'); } });
+
+  /* ---------- nuevo prospecto ---------- */
+  let ns = 1; const TIT = ['Datos generales','¿Qué busca resolver?','Datos de su planta','Siguiente reunión'];
+  function setNs(n){ ns=n; document.querySelectorAll('.nstep').forEach(s=>s.hidden=+s.dataset.s!==n); document.querySelectorAll('.steps i').forEach((b,i)=>b.classList.toggle('on',i<n)); $('#mStep').textContent='Paso '+n+' de 4'; $('#mTitle').textContent=TIT[n-1]; $('#nBack').textContent=n===1?'Cancelar':'Atrás'; $('#nNext').textContent=n===4?'Guardar prospecto':'Siguiente'; $('#nMsg').textContent=''; }
+  function abrirModal(){ $('#nForm').reset(); setNs(1); $('#modal').hidden=false; $('#scrim').hidden=false; $('#n_nombre').focus(); }
+  function cerrarModal(){ $('#modal').hidden=true; if($('#drawer').hidden) $('#scrim').hidden=true; }
+  $('#btnNuevo').addEventListener('click', abrirModal); $('#mClose').addEventListener('click', cerrarModal);
+  $('#nBack').addEventListener('click', () => ns===1 ? cerrarModal() : setNs(ns-1));
+  $('#nForm').addEventListener('submit', e => e.preventDefault());
+  $('#nNext').addEventListener('click', async () => {
+    const v = id => $('#'+id).value.trim(), m = $('#nMsg');
+    if(ns===1){ if(!v('n_nombre')) return m.textContent='Falta el nombre.'; if(!v('n_empresa')) return m.textContent='Falta la empresa.'; if(!v('n_tel')&&!v('n_email')) return m.textContent='Agrega celular o correo.'; if(v('n_email')&&!/^\S+@\S+\.\S+$/.test(v('n_email'))) return m.textContent='El correo no parece válido.'; }
+    if(ns<4) return setNs(ns+1);
+    if(!v('n_rfecha')||!v('n_rhora')) return m.textContent='Pon fecha y hora de la siguiente reunión.';
+    const prob=[...document.querySelectorAll('#n_prob input:checked')].map(i=>i.value).concat(v('n_otro')?['Otro: '+v('n_otro')]:[]);
+    const r = { id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), creado:new Date().toISOString(), etapa:'Urgente', prioridad:'Alta', estado:'Nuevo',
+      nombre:v('n_nombre'), empresa:v('n_empresa'), puesto:v('n_puesto'), tel:v('n_tel'), email:v('n_email'), ubicacion:v('n_ubi'), maquinas:v('n_maq'), tipoMaquinas:v('n_tipo'), monitoreo:v('n_mon'),
+      problemas:prob, interes:v('n_interes'), consentimiento:$('#n_consent').checked?'Sí':'No', notas:v('n_notas'), origen:'App de registro', accion:'Confirmar '+v('n_rtipo').toLowerCase()+' agendada', mensaje:'', historial:[] };
+    const resumen = 'PROSPECTO — '+r.nombre+' ('+r.empresa+')\n\nPuesto: '+r.puesto+'\nCelular: '+r.tel+'\nCorreo: '+r.email+'\nProblemas: '+prob.join(', ')+'\nLe interesó: '+r.interes+'\nMáquinas: '+r.maquinas+' '+r.tipoMaquinas+'\nMonitoreo: '+r.monitoreo+'\nUbicación: '+r.ubicacion+'\nReunión: '+v('n_rtipo')+' '+v('n_rfecha')+' '+v('n_rhora')+'\nNotas: '+r.notas;
+    const b=$('#nNext'); b.disabled=true; b.textContent='Guardando…';
+    try{
+      const res = await gs('registrarNuevo', r, resumen); data.push(res.registro);
+      let s = res.registro, okInv = true;
+      try{ s = await gs('agendar', r.id, v('n_rfecha'), v('n_rhora'), v('n_rtipo'), $('#n_rinv').checked && !!r.email, [], true); }catch(e){ okInv=false; }
+      const i=data.findIndex(x=>x.id===s.id); data[i]=s; render(); cerrarModal();
+      toast(okInv ? 'Prospecto guardado y reunión agendada' : 'Prospecto guardado. No se pudo crear la invitación: agéndala desde su ficha.');
+    }catch(e){ m.textContent='No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.'; }
+    finally{ b.disabled=false; b.textContent='Guardar prospecto'; }
+  });
+
+  /* ---------- sesión ---------- */
+  let pendiente = null;
+  function mostrarLogin(){ token=null; store.set('mt_token',null); $('#login').hidden=false; $('#lStep1').hidden=false; $('#lStep2').hidden=true; $('#lTitle').textContent='Inicia sesión'; $('#lBtn').textContent='Entrar'; $('#lPass').value=''; setTimeout(()=>$('#lUser').focus(),50); }
+  $('#lForm').addEventListener('submit', async e => {
+    e.preventDefault(); const m=$('#lMsg'); m.textContent=''; const b=$('#lBtn'); b.disabled=true;
+    try{
+      if(!$('#lStep2').hidden){
+        const n1=$('#lNew').value, n2=$('#lNew2').value;
+        if(n1.length<8){ m.textContent='Usa al menos 8 caracteres.'; return; }
+        if(n1!==n2){ m.textContent='Las contraseñas no coinciden.'; return; }
+        await raw('cambiarPassword', token, pendiente, n1); pendiente=null; toast('Contraseña actualizada'); await cargar(); return;
+      }
+      const r = await raw('login', $('#lUser').value, $('#lPass').value);
+      token = r.token; store.set('mt_token', token); yo = r;
+      if (r.cambiar){ pendiente=$('#lPass').value; $('#lStep1').hidden=true; $('#lStep2').hidden=false; $('#lTitle').textContent='Hola, '+r.nombre; $('#lBtn').textContent='Guardar y entrar'; $('#lNew').focus(); return; }
+      await cargar();
+    }catch(err){ m.textContent = String(err && err.message || err).replace(/^Error:\s*/,''); }
+    finally{ b.disabled=false; }
+  });
+  $('#btnUser').addEventListener('click', () => { $('#aName').textContent=usuario; const me=equipo.find(u=>u.nombre===usuario); $('#aMyMail').value=me?me.email:''; $('#aOld').value=''; $('#aNew').value=''; $('#acct').hidden=false; $('#scrim').hidden=false; });
+  const cerrarAcct = () => { $('#acct').hidden=true; if($('#drawer').hidden&&$('#modal').hidden) $('#scrim').hidden=true; };
+  $('#aClose').addEventListener('click', cerrarAcct);
+  $('#aMailSave').addEventListener('click', async () => { try{ await gs('guardarMiCorreo', $('#aMyMail').value.trim()); toast('Correo guardado'); cargar(); }catch(e){ toast('No se pudo guardar'); } });
+  $('#aPassSave').addEventListener('click', async () => { try{ await gs('cambiarPassword', $('#aOld').value, $('#aNew').value); toast('Contraseña cambiada'); cerrarAcct(); }catch(e){ toast(String(e&&e.message||e).replace(/^Error:\s*/,'')); } });
+  $('#aLogout').addEventListener('click', async () => { try{ await raw('salir', token); }catch(e){} cerrarAcct(); data=[]; render(); mostrarLogin(); });
+
+  if (token) cargar(); else mostrarLogin();
+})();
+</script>
+</body>
+</html>
