@@ -394,6 +394,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
         <a class="btn accent" id="aWa" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp</a>
         <a class="btn" id="aMail" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>Abrir en mi correo</a>
       </div>
+      <p class="note" id="linkHint" hidden></p>
       <p class="note">El correo se envía solo, desde la cuenta elegida, y queda en el historial. Las respuestas del prospecto te llegan a tu correo de "Mi cuenta". WhatsApp sí lo tienes que mandar tú.</p>
     </div>
 
@@ -716,6 +717,8 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
     const msg = $('#dMsg').value, tel = $('#f_tel').value, mail = $('#f_email').value;
     const wa=$('#aWa'); if (onlyDigits(tel).length>=10){ wa.href='https://wa.me/'+waNum(tel)+'?text='+encodeURIComponent(msg); wa.removeAttribute('aria-disabled'); wa.style.opacity=''; } else { wa.removeAttribute('href'); wa.setAttribute('aria-disabled','true'); wa.style.opacity='.5'; }
     const ml=$('#aMail'); if (mail){ ml.href='mailto:'+encodeURIComponent(mail)+'?subject='+encodeURIComponent('MoldTech · seguimiento Plastimagen 2026')+'&body='+encodeURIComponent(msg); ml.style.opacity=''; } else { ml.removeAttribute('href'); ml.style.opacity='.5'; }
+    const falta=[]; if(onlyDigits(tel).length<10) falta.push('el teléfono (para WhatsApp)'); if(!mail) falta.push('el correo');
+    const h=$('#linkHint'); h.hidden=!falta.length; h.textContent = falta.length ? 'Este prospecto no tiene ' + falta.join(' ni ') + '. Agrégalo en Datos y guarda para activar esos botones.' : '';
     const tl=$('#aTel'); if (tel){ tl.href='tel:'+onlyDigits(tel); tl.style.opacity=''; } else { tl.removeAttribute('href'); tl.style.opacity='.5'; }
     const ub=$('#f_ubicacion').value; $('#aMaps').href = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(ub || r.empresa);
   }
