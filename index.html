@@ -259,6 +259,7 @@ td select{border:1px solid var(--border);background:var(--card);border-radius:8p
     <div class="sec">
       <h3>Mensaje de seguimiento</h3>
       <div class="warnbox" id="dConsent" hidden></div>
+      <div class="field"><label for="dTpl">Plantilla</label><select id="dTpl"></select></div>
       <div class="field"><label for="dSubj">Asunto del correo</label><input id="dSubj" value="MoldTech · seguimiento Plastimagen 2026"></div>
       <div class="field"><label for="dMsg">Mensaje</label><textarea id="dMsg"></textarea></div>
       <div class="grid2">
@@ -576,6 +577,8 @@ td select{border:1px solid var(--border);background:var(--card);border-radius:8p
     $('#dEstado').innerHTML = ESTADOS.map(e=>`<option ${e===r.estado?'selected':''}>${esc(e)}</option>`).join('');
     $('#dAccion').textContent = r.accion ? 'Siguiente acción sugerida: ' + r.accion : '';
     $('#dMsg').value = r.mensaje || ('Hola' + (r.nombre && r.nombre!=='Por identificar' ? ', '+r.nombre.split(' ')[0] : '') + '. Te contacto del equipo MoldTech a raíz de Plastimagen 2026. ¿Podemos agendar 15 minutos para mostrarte cómo monitorear tu producción en tiempo real?');
+    $('#dTpl').innerHTML = '<option value="">Mensaje guardado / escribir el mío</option>' + PLANTILLAS.map((t,i)=>`<option value="${i}">${esc(t.n)}</option>`).join('');
+    $('#dSubj').value = 'MoldTech · seguimiento Plastimagen 2026';
     const c = $('#dConsent');
     if (r.consentimiento !== 'Sí') { c.hidden=false; c.textContent = r.consentimiento==='No' ? 'No aceptó comunicaciones comerciales en el evento. Manda solo un seguimiento puntual de lo que platicaron, sin promociones.' : 'No hay registro de consentimiento. Confírmalo en el primer mensaje.'; } else c.hidden = true;
     ['nombre','empresa','puesto','tel','email','maquinas','tipoMaquinas','ubicacion','notas'].forEach(k => $('#f_'+k).value = r[k]||'');
@@ -628,6 +631,28 @@ td select{border:1px solid var(--border);background:var(--card);border-radius:8p
       const i=data.findIndex(x=>x.id===s.id); if(i>=0) data[i]=s; render(); llenarFicha(s); toast('Correo enviado a '+s.email);
     }catch(e){ toast(String(e&&e.message||e).replace(/^Error:\s*/,'') || 'No se pudo enviar'); $('#sendConfirm').hidden=true; $('#aSend').hidden=false; }
     finally{ b.disabled=false; b.textContent='Sí, enviar'; }
+  });
+  /* ---------- plantillas de mensaje ----------
+     Variables: {nombre} (primer nombre), {empresa}, {yo} (quien envía). Para agregar una, suma un objeto a la lista. */
+  const PLANTILLAS = [
+    { n: 'Primer contacto (después de Plastimagen)', a: 'Gusto en saludarte · MoldTech · Plastimagen 2026',
+      t: 'Hola {nombre},\n\nFue un gusto platicar contigo en Plastimagen 2026. Te escribo de parte del equipo de MoldTech para dar seguimiento a lo que vimos en el stand.\n\nAyudamos a plantas de inyección como {empresa} a ver en tiempo real lo que pasa en cada máquina: ciclos, paros, scrap y eficiencia (OEE), sin cambiar su forma de trabajar.\n\n¿Te parece si agendamos una llamada de 15 minutos esta semana o la próxima para mostrarte cómo se vería con tus máquinas?\n\nSaludos,\n{yo}' },
+    { n: 'Seguimiento (no ha respondido)', a: 'Seguimiento · MoldTech',
+      t: 'Hola {nombre},\n\nTe escribo para dar seguimiento a mi mensaje anterior. Sé que el día a día en planta es intenso, así que te lo dejo sencillo: en 15 minutos te muestro cómo otras plantas monitorean sus máquinas en tiempo real y reducen paros no planeados.\n\n¿Qué día y hora te queda bien? Si prefieres, también podemos platicar por WhatsApp.\n\nSaludos,\n{yo}' },
+    { n: 'Gracias por la reunión', a: 'Gracias por tu tiempo · MoldTech',
+      t: 'Hola {nombre},\n\nMuchas gracias por tu tiempo en la reunión. Como quedamos, te comparto el resumen y los siguientes pasos:\n\n• \n• \n• \n\nCualquier duda quedo atento. Seguimos en contacto.\n\nSaludos,\n{yo}' },
+    { n: 'Envío de propuesta', a: 'Propuesta MoldTech para {empresa}',
+      t: 'Hola {nombre},\n\nTe comparto la propuesta de MoldTech para {empresa}, con el alcance y la inversión que platicamos.\n\nCon gusto la revisamos juntos en una llamada corta para resolver dudas y ajustar lo que haga falta. ¿Qué día te acomoda?\n\nSaludos,\n{yo}' },
+    { n: 'Recordatorio de reunión', a: 'Recordatorio: nuestra reunión · MoldTech',
+      t: 'Hola {nombre},\n\nSolo para recordarte nuestra reunión programada. Si necesitas moverla, dime qué horario te acomoda y la reagendamos sin problema.\n\nSaludos,\n{yo}' }
+  ];
+  function llenarPlantilla(txt){
+    const r = abierto || {}, nom = (r.nombre && r.nombre !== 'Por identificar') ? r.nombre.split(' ')[0] : '';
+    return txt.replace(/\{nombre\}/g, nom).replace(/\{empresa\}/g, r.empresa || 'tu planta').replace(/\{yo\}/g, usuario || 'Equipo MoldTech').replace(/Hola ,/g, 'Hola,');
+  }
+  $('#dTpl').addEventListener('change', () => {
+    const i = $('#dTpl').value; if (i === '') { $('#dMsg').value = (abierto && abierto.mensaje) || $('#dMsg').value; return; }
+    const t = PLANTILLAS[+i]; $('#dSubj').value = llenarPlantilla(t.a); $('#dMsg').value = llenarPlantilla(t.t); updLinks();
   });
   $('#aCopy').addEventListener('click', () => { const t=$('#dMsg').value; navigator.clipboard.writeText(t).then(()=>toast('Mensaje copiado')).catch(()=>{ $('#dMsg').select(); toast('Texto seleccionado: cópialo con el menú'); }); });
   $('#aLog').addEventListener('click', async () => {
