@@ -262,7 +262,7 @@ td select{border:1px solid var(--border);background:var(--card);border-radius:8p
       <div class="field"><label for="dSubj">Asunto del correo</label><input id="dSubj" value="MoldTech · seguimiento Plastimagen 2026"></div>
       <div class="field"><label for="dMsg">Mensaje</label><textarea id="dMsg"></textarea></div>
       <div class="grid2">
-        <div class="field"><label for="dFrom">Enviar desde</label><select id="dFrom"></select></div>
+        <div class="field"><label for="dFrom">¿Quién mandará el correo?</label><select id="dFrom" aria-describedby="dFromHelp"></select><p class="note" id="dFromHelp" hidden>Para enviar como le.rosas, primero hay que activar y confirmar esa dirección en Gmail de jl.rangel, en «Enviar como».</p></div>
         <div class="field"><label for="dSig">Firma (imagen al final)</label><select id="dSig"></select></div>
         <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="dCc" type="checkbox" checked style="width:20px;height:20px;min-height:0">Mandarme copia</label>
       </div>
@@ -563,7 +563,13 @@ td select{border:1px solid var(--border);background:var(--card);border-radius:8p
     $('#dChips').innerHTML = chipEtapa(r.etapa) + (r.prioridad?`<span class="chip">Prioridad ${esc(r.prioridad)}</span>`:'') + chipCons(r.consentimiento) + (r.origen?`<span class="chip">${esc(r.origen)}</span>`:'');
     $('#dEtapa').innerHTML = ETAPAS.map(e=>`<option value="${esc(e)}" ${e===r.etapa?'selected':''}>${esc(ETAPA_LBL[e])}</option>`).join('');
     $('#dCartera').value = r.cartera || '';
-    $('#dFrom').innerHTML = (remitentes.length?remitentes:['Cuenta MoldTech']).map(m=>`<option>${esc(m)}</option>`).join('');
+    const cuentas = [...new Set(['jl.rangel@moldtech.mx', 'le.rosas@moldtech.mx', ...remitentes])];
+    $('#dFrom').innerHTML = cuentas.map(m => {
+      const disponible = remitentes.includes(m);
+      return `<option value="${esc(m)}" ${disponible?'':'disabled'}>${esc(m)}${disponible?'':' · pendiente de activar'}</option>`;
+    }).join('');
+    $('#dFrom').value = remitentes[0] || '';
+    $('#dFromHelp').hidden = remitentes.includes('le.rosas@moldtech.mx');
     $('#sendConfirm').hidden = true; $('#aSend').hidden = false;
     $('#dSig').innerHTML = firmas.map(f=>`<option value="${esc(f.k)}" ${f.k===miClave?'selected':''}>${esc(f.n)}</option>`).join('') + '<option value="">Sin firma</option>';
     sigSync();
