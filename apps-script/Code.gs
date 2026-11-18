@@ -270,35 +270,63 @@ function enviarCorreo(token, id, asunto, cuerpo, desde, copiaMi, firma) {
 }
 
 /**
- * Agenda reunión en el calendario de la cuenta MoldTech, con Google Meet.
- * invitados: correos del equipo elegidos en la app; invitarProspecto: agrega el correo del prospecto.
+ * Agenda en el calendario de jl.rangel, siempre con cliente y Google Meet.
+ * Los parámetros antiguos se conservan por compatibilidad; no permiten omitir invitación ni Meet.
  */
 function agendar(token, id, fecha, hora, tipo, invitarProspecto, invitados, conMeet) {
-  const quien = nombre_(sesion_(token));
+  const yo = sesion_(token), quien = nombre_(yo);
   const sh = hoja_();
   const row = fila_(sh, id);
   if (row < 0) throw new Error('No encontré el registro.');
   const r = leer_(sh.getRange(row, 1, 1, COLS.length).getValues()[0]);
+  const cliente = String(r.email || '').trim().toLowerCase();
+  if (!cliente) throw new Error('Falta el correo del cliente');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cliente)) throw new Error('El correo del cliente no es válido.');
+  const calendario = 'jl.rangel@moldtech.mx';
+  if (String(Calendar.Calendars.get('primary').id || '').toLowerCase() !== calendario) {
+    throw new Error('La app debe ejecutarse con la cuenta jl.rangel@moldtech.mx.');
+  }
   const inicio = Utilities.parseDate(fecha + ' ' + hora, ZONA, 'yyyy-MM-dd HH:mm');
   const fin = new Date(inicio.getTime() + DURACION_MIN * 60000);
-  const lista = (invitados || []).filter(Boolean);
-  if (invitarProspecto && r.email) lista.push(r.email);
-  const desc = 'Reunión con ' + (r.nombre || '') + ' (' + r.empresa + ').\n\nGracias por tu interés en MoldTech. Revisaremos cómo monitorear en tiempo real la producción de tu planta.\n\nAgendado por ' + quien + ' desde MoldTech CRM.';
+  const lista = [...new Set([cliente].concat(Array.isArray(invitados) ? invitados : [])
+    .map(e => String(e || '').trim().toLowerCase()).filter(Boolean))];
+  const firma = (FIRMAS_DEF[yo] && FIRMAS_DEF[yo].n) || quien;
   const ev = {
-    summary: tipo + ' MoldTech · ' + r.empresa,
-    description: desc,
+    summary: 'Reunión MoldTech – ' + (r.empresa || '') + ' (' + (r.nombre || '') + ')',
+    description: 'Hola' + (r.nombre ? ' ' + r.nombre : '') + ', te comparto el enlace para nuestra reunión. Cualquier cambio me avisas.\n\n' + firma + '\nMoldTech',
     location: tipo === 'Visita a planta' ? r.ubicacion : '',
     start: { dateTime: inicio.toISOString(), timeZone: ZONA },
     end: { dateTime: fin.toISOString(), timeZone: ZONA },
-    attendees: [...new Set(lista)].map(e => ({ email: e }))
+    attendees: lista.map(email => ({ email: email })),
+    guestsCanModify: false,
+    guestsCanSeeOtherGuests: true,
+    conferenceData: { createRequest: { requestId: Utilities.getUuid(), conferenceSolutionKey: { type: 'hangoutsMeet' } } }
   };
-  if (conMeet && tipo !== 'Visita a planta') ev.conferenceData = { createRequest: { requestId: Utilities.getUuid(), conferenceSolutionKey: { type: 'hangoutsMeet' } } };
-  const creado = Calendar.Events.insert(ev, 'primary', { conferenceDataVersion: 1, sendUpdates: 'all' });
-  const meet = creado.hangoutLink || '';
-  r.reunion = fecha + ' ' + hora + ' · ' + tipo + (meet ? ' · ' + meet : '');
+  let creado = Calendar.Events.insert(ev, calendario, { conferenceDataVersion: 1, sendUpdates: 'all' });
+  const eventoId = creado.id;
+  // Meet puede generarse de forma asíncrona. Consultar el mismo evento sin volver a crearlo.
+  try {
+    for (let intento = 0; !creado.hangoutLink && intento < 3; intento++) {
+      const solicitud = creado.conferenceData && creado.conferenceData.createRequest;
+      if (solicitud && solicitud.status && solicitud.status.statusCode === 'failure') break;
+      Utilities.sleep((intento + 1) * 1000);
+      creado = Calendar.Events.get(calendario, eventoId);
+    }
+    if (!(creado.attendees || []).some(a => String(a.email || '').trim().toLowerCase() === cliente)) {
+      throw new Error('No se confirmó al cliente entre los invitados.');
+    }
+    if (!creado.hangoutLink) throw new Error('No se confirmó el enlace de Google Meet.');
+    if (String((creado.organizer || {}).email || '').toLowerCase() !== calendario) {
+      throw new Error('El organizador no es jl.rangel@moldtech.mx.');
+    }
+  } catch (e) {
+    throw new Error((e.message || String(e)) + ' El evento puede existir en Calendar; revísalo antes de volver a agendar. Referencia: ' + eventoId);
+  }
+  const meet = creado.hangoutLink;
+  r.reunion = fecha + ' ' + hora + ' · ' + tipo + ' · ' + meet;
   r.etapa = 'Reunión';
   r.estado = 'Reunión agendada';
-  return guardar_(r, tipo + ' agendada para ' + fecha + ' ' + hora + (lista.length ? ' · invitados: ' + lista.join(', ') : '') + (meet ? ' · Meet: ' + meet : ''), quien);
+  return guardar_(r, tipo + ' agendada para ' + fecha + ' ' + hora + ' · invitados: ' + lista.join(', ') + ' · Meet: ' + meet, quien);
 }
 
 const FIRMAS_DEF = {
