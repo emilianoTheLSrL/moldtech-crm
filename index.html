@@ -274,6 +274,9 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
 @media (min-width:721px){.drawer{animation:slide .3s cubic-bezier(.32,.72,0,1)}}
 @keyframes slide{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@keyframes flash{0%{box-shadow:0 0 0 3px var(--ring)}100%{box-shadow:var(--shadow)}}
+.panel.flash{animation:flash 1.2s ease}
+.panel{scroll-margin-top:90px}
 </style>
 </head>
 <body>
@@ -619,10 +622,10 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
     const reus = data.filter(r => enCartera(r) && r.reunion && r.reunion.slice(0,10) >= hoy).sort((a,b)=>a.reunion.localeCompare(b.reunion));
     const sinContacto = activos.filter(r => r.estado==='Nuevo').length;
     $('#kpis').innerHTML = [
-      ['Para hoy', pendientes.length, 'hoy'],
-      ['Seguimientos vencidos', venc, 'hoy'],
+      ['Para hoy', pendientes.length, 'hoy:#listaHoy'],
+      ['Seguimientos vencidos', venc, 'hoy:#listaHoy'],
       ['Sin contactar', sinContacto, 'lista'],
-      ['Reuniones próximas', reus.length, 'hoy']
+      ['Reuniones próximas', reus.length, 'hoy:#listaReu']
     ].map(([l,n,v]) => `<button type="button" class="kpi" data-go="${v}"><b>${n}</b><span>${l}</span></button>`).join('');
     const lst = pendientes.filter(match).sort(ordenar);
     $('#hoyN').textContent = lst.length ? lst.length + ' prospectos' : '';
@@ -655,7 +658,9 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
   document.addEventListener('click', e => {
     if (e.target.closest('select')) return;
     const cb = e.target.closest('[data-cart]'); if (cb) { cartera = cb.dataset.cart; store.set('mt_cartera', cartera); render(); return; }
-    const go = e.target.closest('[data-go]'); if (go) { setView(go.dataset.go); return; }
+    const go = e.target.closest('[data-go]'); if (go) { const [v, sel] = go.dataset.go.split(':'); setView(v);
+      if (sel) { const p = $(sel).closest('.panel') || $(sel); setTimeout(() => { p.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); p.classList.remove('flash'); void p.offsetWidth; p.classList.add('flash'); }, 50); }
+      return; }
     const f = e.target.closest('[data-f]'); if (f) { filtro = f.dataset.f; render(); return; }
     const it = e.target.closest('[data-id]'); if (it && !$('#drawer').contains(it)) abrir(it.dataset.id);
   });
