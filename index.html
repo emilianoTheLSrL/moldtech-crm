@@ -339,7 +339,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
   <!-- LISTA -->
   <section id="v-lista" class="view" hidden>
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
-      <div><h1>Clientes y prospectos</h1><p class="sub" id="listaN"></p></div>
+      <div><h1>Clientes y prospectos</h1><p class="sub" id="listaN"></p><button class="btn" id="btnExcel" type="button" style="margin-top:10px">Descargar Excel</button></div>
       <div class="field" style="min-width:240px"><label for="cfgMail">Correo interno (recibe avisos e invitaciones)</label><input id="cfgMail" type="email" placeholder="correo@moldtech.mx"></div>
     </div>
     <div class="filters" id="filters"></div>
@@ -651,6 +651,45 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
     $('#listaN').textContent = rows.length + ' de ' + data.length + ' registros';
     $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option></select></td><td>${chipEtapa(r.etapa)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
   }
+
+  /* ---------- exportar a Excel (lo que se ve en la tabla) ---------- */
+  function filasVisibles(){
+    return data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Aceptan mensajes' ? r.consentimiento==='Sí' : r.etapa===filtro))).sort(ordenar);
+  }
+  function cargarXLSX(){
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise((ok, mal) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+      s.onload = () => ok(window.XLSX); s.onerror = () => mal(new Error('No se pudo cargar el generador de Excel.'));
+      document.head.appendChild(s);
+    });
+  }
+  async function descargarExcel(){
+    const b = $('#btnExcel'); b.disabled = true;
+    try {
+      const X = await cargarXLSX();
+      const ult = r => { let h = r.historial; if (typeof h === 'string') { try { h = JSON.parse(h); } catch(e) { h = []; } }
+        h = Array.isArray(h) ? h : []; const u = h[h.length-1]; if (!u) return '';
+        return (u.t ? new Date(u.t).toLocaleString('es-MX',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) + ' · ' : '') + (u.quien ? u.quien + ' · ' : '') + (u.txt || ''); };
+      const head = ['Empresa','Contacto','Puesto','Teléfono','Correo','Ubicación','Cartera','Etapa','Estado','Prioridad','Máquinas','Tipo de máquinas','Siguiente acción','Próximo','Reunión','Consentimiento','Origen','Notas','Último movimiento'];
+      const filas = filasVisibles().map(r => [r.empresa, r.nombre, r.puesto, r.tel, r.email, r.ubicacion, r.cartera || 'Sin asignar', ETAPA_LBL[r.etapa] || r.etapa, r.estado, r.prioridad, r.maquinas, r.tipoMaquinas, r.accion, r.proximo ? String(r.proximo).slice(0,10) : '', r.reunion, r.consentimiento, r.origen, r.notas, ult(r)].map(v => v == null ? '' : String(v)));
+      if (!filas.length) { toast('No hay registros para descargar.'); return; }
+      const ws = X.utils.aoa_to_sheet([head].concat(filas));
+      ws['!cols'] = head.map((h,i) => ({ wch: Math.min(60, Math.max(h.length, ...filas.map(f => f[i].length)) + 2) }));
+      ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+      ws['!views'] = [{ state: 'frozen', ySplit: 1, topLeftCell: 'A2' }];
+      head.forEach((h,i) => { const c = ws[X.utils.encode_cell({r:0,c:i})]; if (c) c.s = { font: { bold: true } }; });
+      ws['!autofilter'] = { ref: X.utils.encode_range({s:{r:0,c:0}, e:{r:filas.length, c:head.length-1}}) };
+      const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, ws, 'Prospectos');
+      const cart = (cartera === 'todas' ? 'Todas' : (cartera || 'Sin-asignar')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
+      const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+      X.writeFile(wb, 'MoldTech-CRM_' + cart + '_' + hoy + '.xlsx');
+      toast('Excel descargado: ' + filas.length + ' registros');
+    } catch (e) { toast(e.message || 'No se pudo generar el Excel.'); }
+    finally { b.disabled = false; }
+  }
+  $('#btnExcel').addEventListener('click', descargarExcel);
 
   /* ---------- navegación ---------- */
   function setView(v){ view=v; document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected', t.dataset.view===v)); ['hoy','pipeline','lista'].forEach(x=>{ const el=$('#v-'+x); el.hidden = x!==v; if(x===v){ el.classList.remove('anim'); void el.offsetWidth; el.classList.add('anim'); } }); }
