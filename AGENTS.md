@@ -48,7 +48,7 @@ Todas, salvo `login`, reciben `token` como primer argumento. Sesión de 8 h en C
 - Para agregar columnas: añadir al final de `COLS` en el backend (la hoja agrega el encabezado sola).
 
 ## Pantalla (`index.html`)
-Un solo archivo (HTML + CSS + JS, sin build). Fuente Plus Jakarta Sans, tema oscuro, diseño plano tipo Apple.
+Un solo archivo (HTML + CSS + JS, sin build). Estilo Apple (HIG, skill ehmo/platform-design-skills web+iOS): letra del sistema (SF), barra translúcida, controles segmentados, modo claro/oscuro automático; en celular, pestañas abajo y ficha como hoja de iPhone. Instalable como app (manifest.json + apple-touch-icon.png).
 Vistas: Hoy, Pipeline (kanban con drag & drop), Tabla; barra de Cartera (Todas/Dirección/Equipo/Sin asignar, en localStorage `mt_cartera`); ficha lateral con datos, mensaje (enviar correo con remitente y firma, WhatsApp, abrir en mi correo), agendar reunión e historial. Token en localStorage `mt_token`.
 
 ## Firmas de correo
