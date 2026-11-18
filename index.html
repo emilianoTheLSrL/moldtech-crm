@@ -277,6 +277,8 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
 @keyframes flash{0%{box-shadow:0 0 0 3px var(--ring)}100%{box-shadow:var(--shadow)}}
 .panel.flash{animation:flash 1.2s ease}
 .panel{scroll-margin-top:90px}
+.chip.ali{background:color-mix(in srgb,#8e44ec 16%,transparent);color:#8e44ec}
+@media (prefers-color-scheme:dark){.chip.ali{color:#bf8bff;background:color-mix(in srgb,#bf8bff 18%,transparent)}}
 </style>
 </head>
 <body>
@@ -368,7 +370,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
       <div class="grid2">
         <div class="field"><label for="dEtapa">Etapa</label><select id="dEtapa"></select></div>
         <div class="field"><label for="dEstado">Estado</label><select id="dEstado"></select></div>
-        <div class="field"><label for="dCartera">Cartera (quién lo atiende)</label><select id="dCartera"><option value="">Sin asignar</option><option value="Dirección">Dirección</option><option value="Equipo">Equipo</option></select></div>
+        <div class="field"><label for="dCartera">Cartera (quién lo atiende)</label><select id="dCartera"><option value="">Sin asignar</option><option value="Dirección">Dirección</option><option value="Equipo">Equipo</option><option value="Alianzas">Alianzas</option></select></div>
       </div>
       <p class="note" id="dAccion"></p>
     </div>
@@ -605,12 +607,12 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
   setInterval(()=>{ if(token && !document.hidden && $('#modal').hidden) cargar(); }, 60000);
 
   /* ---------- filtros ---------- */
-  const CARTERAS = [['todas','Todas'],['Dirección','Dirección'],['Equipo','Equipo'],['','Sin asignar']];
+  const CARTERAS = [['todas','Todas'],['Dirección','Dirección'],['Equipo','Equipo'],['Alianzas','Alianzas'],['','Sin asignar']];
   let cartera = store.get('mt_cartera') || 'todas';
   const enCartera = r => cartera==='todas' || (r.cartera||'') === cartera;
   const q = () => $('#q').value.trim().toLowerCase();
   const match = r => enCartera(r) && (!q() || [r.empresa,r.nombre,r.email,r.tel,r.puesto].join(' ').toLowerCase().includes(q()));
-  const chipCart = c => c==='Dirección' ? '<span class="chip dir">Dirección</span>' : c==='Equipo' ? '<span class="chip eq">Equipo</span>' : '';
+  const chipCart = c => c==='Dirección' ? '<span class="chip dir">Dirección</span>' : c==='Equipo' ? '<span class="chip eq">Equipo</span>' : c==='Alianzas' ? '<span class="chip ali">Alianzas</span>' : '';
   const ordenar = (a,b) => (PRIO[a.prioridad]??4)-(PRIO[b.prioridad]??4) || String(a.proximo||'9').localeCompare(String(b.proximo||'9')) || a.empresa.localeCompare(b.empresa);
 
   function render(){
@@ -649,7 +651,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
     $('#filters').innerHTML = fl.map(f => `<button type="button" class="fchip" data-f="${esc(f)}" aria-pressed="${f===filtro}">${esc(ETAPA_LBL[f]||f)} · ${f==='Todos'?data.filter(enCartera).length:f==='Aceptan mensajes'?data.filter(r=>enCartera(r)&&r.consentimiento==='Sí').length:data.filter(r=>enCartera(r)&&r.etapa===f).length}</button>`).join('');
     const rows = data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Aceptan mensajes' ? r.consentimiento==='Sí' : r.etapa===filtro))).sort(ordenar);
     $('#listaN').textContent = rows.length + ' de ' + data.length + ' registros';
-    $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option></select></td><td>${chipEtapa(r.etapa)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
+    $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option><option ${r.cartera==='Alianzas'?'selected':''}>Alianzas</option></select></td><td>${chipEtapa(r.etapa)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
   }
 
   /* ---------- navegación ---------- */
