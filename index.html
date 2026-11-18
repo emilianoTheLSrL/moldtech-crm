@@ -585,7 +585,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
   function toast(t){ const el=$('#toast'); el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,2600); }
   const stCls = e => 'st-' + String(e).split(' ')[0];
   const chipEtapa = e => `<span class="chip ${stCls(e)}"><span class="dot"></span>${esc(ETAPA_LBL[e]||e)}</span>`;
-  const chipCons = c => c === 'Sí' ? '<span class="chip ok">Acepta mensajes</span>' : `<span class="chip warn">Consentimiento: ${esc(c||'Sin dato')}</span>`;
+  const chipCons = c => c === 'Sí' ? '<span class="chip ok">Acepta mensajes</span>' : c === 'No' ? '<span class="chip warn">No acepta promociones</span>' : '';
 
   /* ---------- carga ---------- */
   async function cargar(){
@@ -694,7 +694,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
     $('#dTpl').innerHTML = '<option value="">Mensaje guardado / escribir el mío</option>' + PLANTILLAS.map((t,i)=>`<option value="${i}">${esc(t.n)}</option>`).join('');
     $('#dSubj').value = 'MoldTech · seguimiento Plastimagen 2026';
     const c = $('#dConsent');
-    if (r.consentimiento !== 'Sí') { c.hidden=false; c.textContent = r.consentimiento==='No' ? 'No aceptó comunicaciones comerciales en el evento. Manda solo un seguimiento puntual de lo que platicaron, sin promociones.' : 'No hay registro de consentimiento. Confírmalo en el primer mensaje.'; } else c.hidden = true;
+    if (r.consentimiento === 'No') { c.hidden=false; c.textContent = 'No aceptó comunicaciones comerciales en el evento. Manda solo un seguimiento puntual de lo que platicaron, sin promociones.'; } else c.hidden = true;
     ['nombre','empresa','puesto','tel','email','maquinas','tipoMaquinas','ubicacion','notas'].forEach(k => $('#f_'+k).value = r[k]||'');
     $('#f_prioridad').value = r.prioridad || 'Media';
     $('#dExtra').textContent = [r.senal && 'Señal: '+r.senal, r.motivo && 'Evidencia: '+r.motivo, r.alertas && 'Alertas: '+r.alertas].filter(Boolean).join(' · ');
