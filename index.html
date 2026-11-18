@@ -252,28 +252,50 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media (prefers-contrast:more){:root{--sep:rgba(0,0,0,.5);--muted-fg:#3a3a3c}}
 
-/* ===== Animaciones suaves (solo transform/opacity; se apagan con "Reducir movimiento") ===== */
+/* Superficies y movimiento: profundidad discreta, respuesta táctil y accesibilidad. */
+:root{--ease-out:cubic-bezier(.22,1,.36,1);--surface-edge:rgba(15,23,42,.06);--lift-shadow:0 8px 24px rgba(15,23,42,.09)}
+@media (prefers-color-scheme:dark){:root{--surface-edge:rgba(255,255,255,.09);--lift-shadow:0 8px 28px rgba(0,0,0,.28)}}
+.kpi,.panel,.sec,.card,.lbox{box-shadow:inset 0 0 0 1px var(--surface-edge),var(--shadow)}
+.kpi{padding:20px;gap:8px;background-image:linear-gradient(145deg,color-mix(in srgb,var(--primary) 4%,transparent),transparent 65%)}
+.kpi b{font-variant-numeric:tabular-nums;letter-spacing:-.035em}
+.panel-h{padding-block:16px}
+.search{box-shadow:inset 0 0 0 1px transparent;transition:box-shadow .18s ease,background-color .18s ease}
+.search:focus-within{background:var(--card);box-shadow:0 0 0 2px var(--ring)}
+.cartera .seg2{padding:3px;gap:2px}
+.cartera .seg2 button{min-height:40px}
+.card{padding:16px;gap:8px}
+.mbox,.lbox{box-shadow:inset 0 0 0 1px var(--surface-edge),0 24px 64px rgba(0,0,0,.14)}
+.toast{box-shadow:0 8px 32px rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.12)}
+@media (min-width:721px){.tabs{padding:3px;gap:2px}.tab{min-height:40px}}
+@media (max-width:720px){.drawer{border-radius:24px 24px 0 0}.d-head{padding-top:26px}.tabs{box-shadow:0 -1px 16px rgba(0,0,0,.03)}}
+
+/* Animar contenedores evita acumular movimiento en cada fila y tarjeta. */
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes popIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
 @keyframes toastIn{from{opacity:0;transform:translate(-50%,16px) scale(.96)}to{opacity:1;transform:translate(-50%,0)}}
-.view.anim{animation:fadeUp .28s cubic-bezier(.2,.8,.2,1)}
-.entrada .kpi,.entrada .panel,.entrada .row,.entrada .card,.entrada tbody tr{animation:fadeUp .4s cubic-bezier(.2,.8,.2,1) both}
-.entrada .kpi:nth-child(2),.entrada .row:nth-child(2),.entrada .card:nth-child(2),.entrada tbody tr:nth-child(2){animation-delay:.04s}
-.entrada .kpi:nth-child(3),.entrada .row:nth-child(3),.entrada .card:nth-child(3),.entrada tbody tr:nth-child(3){animation-delay:.08s}
-.entrada .kpi:nth-child(4),.entrada .row:nth-child(4),.entrada .card:nth-child(4),.entrada tbody tr:nth-child(4){animation-delay:.12s}
-.entrada .row:nth-child(n+5),.entrada .card:nth-child(n+5),.entrada tbody tr:nth-child(n+5){animation-delay:.16s}
-.lbox,.mbox{animation:popIn .3s cubic-bezier(.2,.8,.2,1)}
-.toast:not([hidden]){animation:toastIn .3s cubic-bezier(.2,.8,.2,1)}
+.view.anim{animation:fadeUp .24s var(--ease-out)}
+.entrada .kpi,.entrada .panel{animation:fadeUp .32s var(--ease-out) backwards}
+.entrada .kpi:nth-child(2){animation-delay:.035s}
+.entrada .kpi:nth-child(3){animation-delay:.07s}
+.entrada .kpi:nth-child(4){animation-delay:.105s}
+.lbox,.mbox{animation:popIn .26s var(--ease-out)}
+.toast:not([hidden]){animation:toastIn .26s var(--ease-out)}
 .scrim:not([hidden]){animation:fade .2s ease}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-.tab,.cartera .seg2 button,.fchip,.btn,.kpi,.card,.row{transition:background-color .2s,color .2s,box-shadow .2s,transform .15s,filter .2s}
-@media (hover:hover){.card:hover,button.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08)}}
-.kpi:active,.card:active,.row:active{transform:scale(.985)}
+.tab,.cartera .seg2 button,.fchip,.btn,.kpi,.card,.row{transition:background-color .18s ease,color .18s ease,box-shadow .2s ease,transform .16s var(--ease-out),filter .18s ease}
+@media (hover:hover) and (pointer:fine){.card:hover,button.kpi:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px var(--surface-edge),var(--lift-shadow)}}
+button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:active,.cartera .seg2 button:active,.fchip:active{transform:scale(.98)}
+.btn:disabled:active{transform:none}
 .tab .tico{transition:transform .2s}
 .tab[aria-selected="true"] .tico{transform:scale(1.08)}
 @media (min-width:721px){.drawer{animation:slide .3s cubic-bezier(.32,.72,0,1)}}
 @keyframes slide{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .card:hover,button.kpi:hover,button.kpi:active,.card:active,.row:active,.btn:active,.tab:active,.cartera .seg2 button:active,.fchip:active,.tab .tico{transform:none!important}
+}
+@media (prefers-contrast:more){.kpi,.panel,.sec,.card,.lbox{border:1px solid var(--fg)}}
+@media (prefers-color-scheme:dark) and (prefers-contrast:more){:root{--sep:rgba(255,255,255,.65);--muted-fg:#e5e5ea}}
 @keyframes flash{0%{box-shadow:0 0 0 3px var(--ring)}100%{box-shadow:var(--shadow)}}
 .panel.flash{animation:flash 1.2s ease}
 .panel{scroll-margin-top:90px}
