@@ -44,12 +44,12 @@ Todas, salvo `login`, reciben `token` como primer argumento. Sesión de 8 h en C
 `id, creado, editado, editadoPor, etapa, prioridad, estado, nombre, empresa, puesto, tel, email, ubicacion, maquinas, tipoMaquinas, monitoreo, problemas(JSON), interes, senal, motivo, accion, mensaje, consentimiento, proximo, reunion, notas, alertas, origen, tamano, historial(JSON), cartera`
 - `etapa`: Urgente · Interesado · Mensaje · Reunión · Cliente · Sin ajuste
 - `estado`: Nuevo · Contactado · Respondió · Reunión agendada · Propuesta enviada · Ganado · Perdido · Archivado
-- `cartera`: `Dirección` (la atienden los jefes) · `Equipo` (Emiliano y Patrick) · vacío = sin asignar. No usar nombres como "ultra importantes".
+- `cartera`: `Dirección` (la atienden los jefes) · `Equipo` (Emiliano y Patrick) · `Alianzas` (colaboraciones, prensa, marketing, socios; no son clientes) · vacío = sin asignar. No usar nombres como "ultra importantes".
 - Para agregar columnas: añadir al final de `COLS` en el backend (la hoja agrega el encabezado sola).
 
 ## Pantalla (`index.html`)
 Un solo archivo (HTML + CSS + JS, sin build). Estilo Apple (HIG, skill ehmo/platform-design-skills web+iOS): letra del sistema (SF), barra translúcida, controles segmentados, modo claro/oscuro automático; en celular, pestañas abajo y ficha como hoja de iPhone. Instalable como app (manifest.json + apple-touch-icon.png).
-Vistas: Hoy, Pipeline (kanban con drag & drop), Tabla; barra de Cartera (Todas/Dirección/Equipo/Sin asignar, en localStorage `mt_cartera`); ficha lateral con datos, mensaje (enviar correo con remitente y firma, WhatsApp, abrir en mi correo), agendar reunión e historial. Token en localStorage `mt_token`.
+Vistas: Hoy, Pipeline (kanban con drag & drop), Tabla; barra de Cartera (Todas/Dirección/Equipo/Alianzas/Sin asignar, en localStorage `mt_cartera`); ficha lateral con datos, mensaje (enviar correo con remitente y firma, WhatsApp, abrir en mi correo), agendar reunión e historial. Token en localStorage `mt_token`.
 
 ## Firmas de correo
 Imágenes `firma-<usuario>.jpg` (1200×400) copiadas en la carpeta "MoldTech CRM" del Drive de jl.rangel, públicas por link; IDs en la propiedad `FIRMAS_IDS`. Se insertan como `<img src="https://lh3.googleusercontent.com/d/<id>=w1200">` (las imágenes `cid:` no se ven en Outlook móvil). Nombres y correos en `FIRMAS_DEF`.
