@@ -162,6 +162,8 @@ tbody tr:hover td{background:var(--muted)}
 .cartera .seg2 button[aria-pressed="true"]{background:var(--card);color:var(--fg);box-shadow:0 0 0 1px var(--border)}
 .chip.dir{background:color-mix(in srgb,var(--primary) 16%,transparent);color:var(--primary)}
 .chip.eq{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+.chip.alianzas{background:#f3e8ff;color:#7e22ce}
+@media (prefers-color-scheme:dark){.chip.alianzas{background:#3b2054;color:#e9d5ff}}
 td select{border:1px solid var(--border);background:var(--card);border-radius:8px;padding:6px 8px;font-size:13px;min-height:36px}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:14px;z-index:60;max-width:calc(100% - 32px)}
 .sync{font-size:12px;color:var(--muted-fg)}
@@ -368,7 +370,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
       <div class="grid2">
         <div class="field"><label for="dEtapa">Etapa</label><select id="dEtapa"></select></div>
         <div class="field"><label for="dEstado">Estado</label><select id="dEstado"></select></div>
-        <div class="field"><label for="dCartera">Cartera (quién lo atiende)</label><select id="dCartera"><option value="">Sin asignar</option><option value="Dirección">Dirección</option><option value="Equipo">Equipo</option></select></div>
+        <div class="field"><label for="dCartera">Cartera (quién lo atiende)</label><select id="dCartera"><option value="">Sin asignar</option><option value="Dirección">Dirección</option><option value="Equipo">Equipo</option><option value="Alianzas">Alianzas</option></select></div>
       </div>
       <p class="note" id="dAccion"></p>
     </div>
@@ -605,12 +607,12 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
   setInterval(()=>{ if(token && !document.hidden && $('#modal').hidden) cargar(); }, 60000);
 
   /* ---------- filtros ---------- */
-  const CARTERAS = [['todas','Todas'],['Dirección','Dirección'],['Equipo','Equipo'],['','Sin asignar']];
+  const CARTERAS = [['todas','Todas'],['Dirección','Dirección'],['Equipo','Equipo'],['Alianzas','Alianzas'],['','Sin asignar']];
   let cartera = store.get('mt_cartera') || 'todas';
   const enCartera = r => cartera==='todas' || (r.cartera||'') === cartera;
   const q = () => $('#q').value.trim().toLowerCase();
   const match = r => enCartera(r) && (!q() || [r.empresa,r.nombre,r.email,r.tel,r.puesto].join(' ').toLowerCase().includes(q()));
-  const chipCart = c => c==='Dirección' ? '<span class="chip dir">Dirección</span>' : c==='Equipo' ? '<span class="chip eq">Equipo</span>' : '';
+  const chipCart = c => c==='Dirección' ? '<span class="chip dir">Dirección</span>' : c==='Equipo' ? '<span class="chip eq">Equipo</span>' : c==='Alianzas' ? '<span class="chip alianzas">Alianzas</span>' : '';
   const ordenar = (a,b) => (PRIO[a.prioridad]??4)-(PRIO[b.prioridad]??4) || String(a.proximo||'9').localeCompare(String(b.proximo||'9')) || a.empresa.localeCompare(b.empresa);
 
   function render(){
@@ -649,7 +651,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
     $('#filters').innerHTML = fl.map(f => `<button type="button" class="fchip" data-f="${esc(f)}" aria-pressed="${f===filtro}">${esc(ETAPA_LBL[f]||f)} · ${f==='Todos'?data.filter(enCartera).length:f==='Aceptan mensajes'?data.filter(r=>enCartera(r)&&r.consentimiento==='Sí').length:data.filter(r=>enCartera(r)&&r.etapa===f).length}</button>`).join('');
     const rows = data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Aceptan mensajes' ? r.consentimiento==='Sí' : r.etapa===filtro))).sort(ordenar);
     $('#listaN').textContent = rows.length + ' de ' + data.length + ' registros';
-    $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option></select></td><td>${chipEtapa(r.etapa)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
+    $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option><option ${r.cartera==='Alianzas'?'selected':''}>Alianzas</option></select></td><td>${chipEtapa(r.etapa)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
   }
 
   /* ---------- navegación ---------- */
