@@ -180,7 +180,7 @@ function init(token) {
   return {
     registros: datos.filter(f => f[0]).map(leer_),
     correoInterno: P.getProperty('correoInterno') || '',
-    usuario: yo, nombre: nombre_(yo), equipo: equipo_(), remitentes: remitentes_(), firmas: firmas_()
+    usuario: yo, nombre: nombre_(yo), equipo: equipo_(), remitentes: remitentes_(), firmas: firmas_(), presentacion: !!P.getProperty('PRESENTACION_ID')
   };
 }
 
@@ -234,7 +234,7 @@ function remitentes_() {
 }
 
 /** Envía un correo al prospecto desde la cuenta MoldTech (o un alias) y lo deja en el historial. */
-function enviarCorreo(token, id, asunto, cuerpo, desde, copiaMi, firma) {
+function enviarCorreo(token, id, asunto, cuerpo, desde, copiaMi, firma, adjuntar) {
   const yo = sesion_(token), quien = nombre_(yo);
   const sh = hoja_();
   const row = fila_(sh, id);
@@ -253,6 +253,11 @@ function enviarCorreo(token, id, asunto, cuerpo, desde, copiaMi, firma) {
   if (desde && desde !== dueno) {
     if (GmailApp.getAliases().indexOf(desde) < 0) throw new Error('La cuenta ' + desde + ' no está configurada para enviar.');
     opts.from = desde;
+  }
+  const pdfId = P.getProperty('PRESENTACION_ID');
+  if (adjuntar && pdfId) {
+    opts.attachments = [DriveApp.getFileById(pdfId).getBlob().setName('MoldTech - Presentación comercial 2026.pdf')];
+    if (!/presentaci[oó]n/i.test(cuerpo)) cuerpo = cuerpo.replace(/\s*Saludos\.?\s*$/i, '') + '\n\nTe comparto nuestra presentación comercial (PDF adjunto), donde viene a detalle la plataforma y la demo gratuita de 15 días.\n\nSaludos.';
   }
   const ids = JSON.parse(P.getProperty('FIRMAS_IDS') || '{}');
   if (firma && ids[firma]) {
@@ -449,3 +454,12 @@ function personalizarMensajes() {
 
 /** Mantenimiento: vuelve a leer los alias "Enviar como" de Gmail (por ejemplo le.rosas). */
 function refrescarRemitentes() { CacheService.getScriptCache().remove('remitentes'); const r = remitentes_(); console.log('Remitentes: ' + r.join(', ')); return r; }
+
+/** Mantenimiento: copia a la carpeta del CRM la presentación comercial compartida (PDF) para adjuntarla en los correos. */
+function instalarPresentacion() {
+  const it = DriveApp.searchFiles('title = "MoldTech_Presentacion_Comercial_2026.pdf" and sharedWithMe');
+  if (!it.hasNext()) throw new Error('No encontré el PDF compartido');
+  const f = it.next().makeCopy('MoldTech - Presentación comercial 2026.pdf', DriveApp.getFolderById(P.getProperty('FOLDER_ID')));
+  P.setProperty('PRESENTACION_ID', f.getId());
+  return f.getId();
+}

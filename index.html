@@ -383,6 +383,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
         <div class="field"><label for="dFrom">¿Quién mandará el correo?</label><select id="dFrom" aria-describedby="dFromHelp"></select><p class="note" id="dFromHelp" hidden>Para enviar como le.rosas, primero hay que activar y confirmar esa dirección en Gmail de jl.rangel, en «Enviar como».</p></div>
         <div class="field"><label for="dSig">Firma (imagen al final)</label><select id="dSig"></select></div>
         <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="dCc" type="checkbox" checked style="width:20px;height:20px;min-height:0">Mandarme copia</label>
+        <label class="field" id="dPdfWrap" style="flex-direction:row;align-items:center;gap:8px;font-size:14px" hidden><input id="dPdf" type="checkbox" checked style="width:20px;height:20px;min-height:0">Adjuntar presentación MoldTech (PDF)</label>
       </div>
       <button class="btn primary" type="button" id="aSend"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>Enviar correo ahora</button>
       <div class="confirm" id="sendConfirm" hidden>
@@ -595,7 +596,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
   async function cargar(){
     try{
       const d = await gs('init');
-      data = d.registros; usuario = d.nombre; equipo = d.equipo || []; remitentes = d.remitentes || []; firmas = d.firmas || []; miClave = d.usuario || ''; $('#cfgMail').value = d.correoInterno || '';
+      data = d.registros; usuario = d.nombre; equipo = d.equipo || []; remitentes = d.remitentes || []; firmas = d.firmas || []; $('#dPdfWrap').hidden = !d.presentacion; miClave = d.usuario || ''; $('#cfgMail').value = d.correoInterno || '';
       $('#avatar').textContent = (d.nombre||'?').slice(0,1).toUpperCase(); $('#login').hidden = true; if(!cargar.ya){ cargar.ya=true; document.body.classList.add('entrada'); setTimeout(()=>document.body.classList.remove('entrada'), 1200); }
       $('#sync').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
       render();
@@ -778,7 +779,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
     const r=abierto, mail=$('#f_email').value.trim();
     if(!mail){ toast('Este prospecto no tiene correo. Agrégalo en Datos y guarda.'); return; }
     if(!$('#dMsg').value.trim()){ toast('Escribe el mensaje'); return; }
-    $('#sendTxt').textContent = '¿Enviar este correo a ' + mail + ' desde ' + $('#dFrom').value + ($('#dSig').value ? ' con la firma de ' + $('#dSig').selectedOptions[0].textContent : ' sin firma') + '?';
+    $('#sendTxt').textContent = '¿Enviar este correo a ' + mail + ' desde ' + $('#dFrom').value + ($('#dSig').value ? ' con la firma de ' + $('#dSig').selectedOptions[0].textContent : ' sin firma') + ((!$('#dPdfWrap').hidden && $('#dPdf').checked) ? ', con la presentación PDF adjunta' : '') + '?';
     $('#sendConfirm').hidden=false; $('#aSend').hidden=true;
   });
   function sigSync(){ const f=firmas.find(x=>x.k===$('#dSig').value); if(f && f.email && remitentes.includes(f.email)) $('#dFrom').value=f.email; }
@@ -788,7 +789,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
     const r=abierto, b=$('#aSendYes'); b.disabled=true; b.textContent='Enviando…';
     try{
       if ($('#f_email').value.trim() !== (r.email||'')) { r.email=$('#f_email').value.trim(); await guardar(r,'Correo del prospecto actualizado'); }
-      const s = await gs('enviarCorreo', r.id, $('#dSubj').value.trim(), $('#dMsg').value, $('#dFrom').value, $('#dCc').checked, $('#dSig').value);
+      const s = await gs('enviarCorreo', r.id, $('#dSubj').value.trim(), $('#dMsg').value, $('#dFrom').value, $('#dCc').checked, $('#dSig').value, !$('#dPdfWrap').hidden && $('#dPdf').checked);
       const i=data.findIndex(x=>x.id===s.id); if(i>=0) data[i]=s; render(); llenarFicha(s); toast('Correo enviado a '+s.email);
     }catch(e){ toast(String(e&&e.message||e).replace(/^Error:\s*/,'') || 'No se pudo enviar'); $('#sendConfirm').hidden=true; $('#aSend').hidden=false; }
     finally{ b.disabled=false; b.textContent='Sí, enviar'; }
