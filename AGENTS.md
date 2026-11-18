@@ -54,6 +54,9 @@ Vistas: Hoy, Pipeline (kanban con drag & drop), Tabla; barra de Cartera (Todas/D
 ## Firmas de correo
 Imágenes `firma-<usuario>.jpg` (1200×400) copiadas en la carpeta "MoldTech CRM" del Drive de jl.rangel, públicas por link; IDs en la propiedad `FIRMAS_IDS`. Se insertan como `<img src="https://lh3.googleusercontent.com/d/<id>=w1200">` (las imágenes `cid:` no se ven en Outlook móvil). Nombres y correos en `FIRMAS_DEF`.
 
+## Respaldo
+Activador diario (12–1 am) que corre `respaldoDiario`: copia la hoja a la carpeta "MoldTech CRM/Respaldos" y deja 30 días. No necesita redesplegar la app.
+
 ## Reglas
 - No tocar nada de la organización de GitHub `moldtech-ai` sin autorización explícita. Este repo es de la cuenta personal `emilianoTheLSrL`.
 - Nunca modificar la Google Sheet "Maquinas--- V2--Pendientes" (solo lectura).

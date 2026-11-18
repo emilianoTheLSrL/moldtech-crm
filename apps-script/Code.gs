@@ -375,3 +375,19 @@ function permisoGmail() { return 'Gmail OK · remitentes: ' + [ 'jl.rangel@moldt
 
 /** Correr desde el editor para revisar las firmas. */
 function probarFirmas() { const ids = JSON.parse(P.getProperty('FIRMAS_IDS') || '{}'); const r = Object.keys(ids).map(k => k + ': ' + firmaUrl_(ids[k])).join(' | '); console.log(r); return r; }
+
+/**
+ * Respaldo diario: copia la hoja de datos a "MoldTech CRM/Respaldos" y conserva los últimos 30 días.
+ * Lo corre un activador diario (12-1 am, creado desde Activadores en el editor). No toca la hoja original ni la app.
+ */
+function respaldoDiario() {
+  const carpeta = DriveApp.getFolderById(P.getProperty('FOLDER_ID'));
+  const it = carpeta.getFoldersByName('Respaldos');
+  const resp = it.hasNext() ? it.next() : carpeta.createFolder('Respaldos');
+  const hoy = Utilities.formatDate(new Date(), ZONA, 'yyyy-MM-dd');
+  if (!resp.getFilesByName('Respaldo CRM ' + hoy).hasNext()) DriveApp.getFileById(P.getProperty('SHEET_ID')).makeCopy('Respaldo CRM ' + hoy, resp);
+  const limite = Date.now() - 30 * 24 * 3600 * 1000;
+  const fs = resp.getFiles();
+  while (fs.hasNext()) { const f = fs.next(); if (f.getName().indexOf('Respaldo CRM ') === 0 && f.getDateCreated().getTime() < limite) f.setTrashed(true); }
+  return 'Respaldo ' + hoy + ' listo';
+}
