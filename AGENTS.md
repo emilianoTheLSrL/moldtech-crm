@@ -57,10 +57,22 @@ Imágenes `firma-<usuario>.jpg` (1200×400) copiadas en la carpeta "MoldTech CRM
 ## Respaldo
 Activador diario (12–1 am) que corre `respaldoDiario`: copia la hoja a la carpeta "MoldTech CRM/Respaldos" y deja 30 días. No necesita redesplegar la app.
 
+## Cómo trabajar (puedes modificar y mover lo que haga falta)
+Tienes permiso de cambiar, reorganizar y publicar en `main`, siempre que todo se pueda **rebobinar**:
+1. **Antes de tocar nada**, crea un punto de regreso y súbelo:
+   `git tag antes-$(date +%Y%m%d-%H%M) && git push origin --tags`
+2. Haz **commits pequeños**, uno por cambio, con mensaje claro en español.
+3. Prueba que la página cargue sin errores en la consola antes de hacer push.
+4. Al terminar, di en tu respuesta el nombre del tag creado y qué cambiaste.
+**Para rebobinar:** `git revert <commit>` (deshace un cambio) o volver todo al punto de regreso:
+`git checkout <tag> -- . && git commit -m "Regreso a <tag>" && git push` (sin borrar historial; nunca uses `push --force`).
+Los tags no ocupan espacio extra (solo marcan un commit).
+Si el cambio toca `apps-script/Code.gs`, avisa que hay que publicarlo en Apps Script (no se publica solo).
+
 ## Reglas
 - No tocar nada de la organización de GitHub `moldtech-ai` sin autorización explícita. Este repo es de la cuenta personal `emilianoTheLSrL`.
 - Nunca modificar la Google Sheet "Maquinas--- V2--Pendientes" (solo lectura).
-- Cambios reversibles: commits pequeños y claros.
+- Cambios reversibles: punto de regreso (tag) antes de empezar y commits pequeños. Nunca `push --force` ni borrar tags o ramas ajenas.
 - No meter datos personales ni contraseñas en el repo.
 - Si sirves HTML desde Apps Script (`HtmlService`), escapa `//` dentro de strings de JS (`'https:\/\/…'`): HtmlService puede cortar esas líneas y romper la página. En GitHub Pages no pasa.
 
