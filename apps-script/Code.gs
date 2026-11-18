@@ -391,3 +391,61 @@ function respaldoDiario() {
   while (fs.hasNext()) { const f = fs.next(); if (f.getName().indexOf('Respaldo CRM ') === 0 && f.getDateCreated().getTime() < limite) f.setTrashed(true); }
   return 'Respaldo ' + hoy + ' listo';
 }
+/** Arma un mensaje personalizado según lo que sabemos (y lo que falta) del prospecto. */
+function armarMensaje_(r) {
+  const vacio = v => { const s = String(v == null ? '' : v).trim().toLowerCase(); return !s || /^(pendiente|indefinido|por identificar|por confirmar|n\/?a|sin dato|-|0|000)/.test(s); };
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+  const titulo = s => (s === s.toUpperCase() ? s.toLowerCase().replace(/(^|[\s(])([a-záéíóúñ])/g, (m, a, b) => a + b.toUpperCase()).replace(/\b(S\.?a\.?|De|C\.?v\.?|Srl|Sa)\b/gi, w => w.toUpperCase()) : s);
+  const nom = vacio(r.nombre) ? '' : cap(String(r.nombre).trim().split(/\s+/)[0]);
+  const emp = vacio(r.empresa) ? 'tu empresa' : titulo(String(r.empresa).trim());
+  const tipo = String(r.tipoMaquinas || '').trim(), tipoOk = /inyec|extru|sopl|termof|rotomol|compres|tornos|cnc/i.test(tipo);
+  const maq = String(r.maquinas || '').trim(), maqOk = !vacio(maq);
+  const ubiOk = !vacio(r.ubicacion);
+  const telOk = String(r.tel || '').replace(/\D/g, '').length >= 10;
+  const probs = (Array.isArray(r.problemas) ? r.problemas : []).filter(Boolean);
+  const sinPromo = r.consentimiento === 'No';
+  const puesto = String(r.puesto || '').toLowerCase(), notas = (String(r.notas || '') + ' ' + String(r.accion || '')).toLowerCase();
+  const compras = /compra|adquisic|abasto/.test(puesto), decisor = /director|gerente|dueñ|owner|ceo|coo|plant manager|jefe de planta/.test(puesto);
+  const kit = /kit/.test(notas), visita = /visita/.test(notas);
+  const reunion = r.etapa === 'Reunión' || r.estado === 'Reunión agendada';
+  const p = [];
+  p.push('Hola' + (nom ? ' ' + nom : '') + ',');
+  p.push(String(r.origen || '').indexOf('Plastimagen') >= 0
+    ? 'Te escribo de MoldTech; fue un gusto saludarte en Plastimagen 2026.'
+    : 'Te escribo de parte del equipo de MoldTech.');
+  if (tipoOk && maqOk) p.push('Nos quedamos con el dato de que en ' + emp + ' operan ' + (/^\d+$/.test(maq) ? maq + ' máquinas (' + tipo.toLowerCase() + ')' : maq.charAt(0).toLowerCase() + maq.slice(1)) + '. Con MoldTech pueden ver en tiempo real la producción, los paros y la eficiencia de cada una, sin cambiar su forma de trabajar.');
+  else if (tipoOk) p.push('Vimos que en ' + emp + ' trabajan con ' + tipo.toLowerCase() + '. Con MoldTech pueden ver en tiempo real la producción, los paros y la eficiencia de cada máquina, sin cambiar su forma de trabajar.');
+  else p.push('En MoldTech conectamos las máquinas de planta para ver en tiempo real la producción, los paros y la eficiencia, sin cambiar la forma de trabajar.');
+  if (compras) p.push('Sé que tu área es compras, así que si nos ayudas a contactar a la persona de producción o mantenimiento, con gusto le presentamos la propuesta.');
+  else if (decisor) p.push('Como responsable en ' + emp + ', creo que te puede interesar ver cuánto tiempo de máquina se pierde hoy por paros y ajustes.');
+  if (probs.length) p.push('Nos comentaste que les interesa mejorar: ' + probs.join(', ').toLowerCase() + '.');
+  if (String(r.monitoreo).trim() === 'No') p.push('Como hoy no monitorean sus máquinas en línea, es un buen punto para empezar.');
+  const q = [];
+  if (!tipoOk) q.push('¿Qué tipo de planta tienen (inyección, extrusión, soplado u otro proceso)' + (maqOk ? '?' : ' y cuántas máquinas, aproximadamente?'));
+  else if (!maqOk) q.push('¿Cuántas máquinas tienen, aproximadamente?');
+  if (!ubiOk) q.push('¿En qué ciudad está su planta?');
+  if (!telOk) q.push('¿Te podemos contactar por WhatsApp? Si sí, compártenos tu número.');
+  if (q.length) p.push('Para preparar algo a la medida, me ayudarías con unos datos:\n' + q.map(x => '• ' + x).join('\n'));
+  if (reunion) p.push('Quedo atento para nuestra reunión; si necesitas moverla, con gusto la reagendamos.');
+  else if (sinPromo) p.push('Solo te escribo para dar seguimiento a lo que platicamos en el stand; quedo atento a lo que necesites.');
+  else if (kit) p.push('Si te parece, podemos ir a instalar un kit de prueba en una de sus máquinas para que vean los datos en vivo. ¿Qué día les acomoda?');
+  else if (visita) p.push('¿Te parece si agendamos una visita a planta para conocer sus máquinas y mostrarte la plataforma?');
+  else p.push('¿Te parece si agendamos 15 minutos esta semana para mostrarte una demo?');
+  p.push('Saludos.');
+  return p.join('\n\n');
+}
+
+/** Mantenimiento: reescribe con mensaje personalizado a los prospectos que nadie ha contactado (estado "Nuevo"). */
+function personalizarMensajes() {
+  return conLock_(() => {
+    const sh = hoja_(), n = sh.getLastRow() - 1; if (n < 1) return 0;
+    const rg = sh.getRange(2, 1, n, COLS.length), v = rg.getValues(), cm = COLS.indexOf('mensaje');
+    let k = 0;
+    v.forEach(f => { const r = leer_(f); if (r.id && r.estado === 'Nuevo') { f[cm] = armarMensaje_(r); k++; } });
+    sh.getRange(2, cm + 1, n, 1).setValues(v.map(f => [f[cm]]));
+    console.log(k + ' mensajes personalizados'); return k;
+  });
+}
+
+/** Mantenimiento: vuelve a leer los alias "Enviar como" de Gmail (por ejemplo le.rosas). */
+function refrescarRemitentes() { CacheService.getScriptCache().remove('remitentes'); const r = remitentes_(); console.log('Remitentes: ' + r.join(', ')); return r; }
