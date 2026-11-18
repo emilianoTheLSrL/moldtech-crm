@@ -618,7 +618,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
     $('#carteraBar').innerHTML = CARTERAS.map(([v,l]) => `<button type="button" data-cart="${esc(v)}" aria-pressed="${v===cartera}">${esc(l)} · ${v==='todas'?data.length:data.filter(r=>(r.cartera||'')===v).length}</button>`).join('');
     $('#fechaHoy').textContent = new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
     const activos = data.filter(r => enCartera(r) && r.etapa !== 'Sin ajuste' && !['Ganado','Perdido','Archivado'].includes(r.estado));
-    const pendientes = activos.filter(r => (r.proximo && r.proximo <= hoy) || (r.etapa==='Urgente' && r.estado==='Nuevo'));
+    const pendientes = activos.filter(r => !(r.reunion && r.reunion.slice(0,10) >= hoy) && ((r.proximo && r.proximo <= hoy) || (r.etapa==='Urgente' && r.estado==='Nuevo')));
     const venc = activos.filter(r => r.proximo && r.proximo < hoy).length;
     const reus = data.filter(r => enCartera(r) && r.reunion && r.reunion.slice(0,10) >= hoy).sort((a,b)=>a.reunion.localeCompare(b.reunion));
     const sinContacto = activos.filter(r => r.estado==='Nuevo').length;
