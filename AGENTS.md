@@ -1,0 +1,68 @@
+# MoldTech CRM — contexto para agentes (Codex, Claude, etc.)
+
+Responde en español. El dueño (Emiliano) prefiere respuestas cortas y directas.
+
+## Qué es
+CRM interno de MoldTech para dar seguimiento a ~69 prospectos de la expo Plastimagen 2026.
+Lo usan 4 personas con usuario y contraseña propios (no necesitan cuenta de Google):
+`emiliano`, `patrick`, `joseluis` (José Luis Rangel, CTO), `enrique` (Luis Enrique Rosas, CEO).
+
+## Arquitectura
+```
+GitHub Pages (este repo)                Google Apps Script (cuenta jl.rangel@moldtech.mx)
+index.html  ── fetch POST JSON ──▶  doPost(e)  →  Google Sheet "MoldTech CRM · Datos"
+                {fn, args}                       →  GmailApp (correos a prospectos)
+            ◀── {result} | {error} ──            →  Calendar API (reuniones con Meet)
+```
+- **App:** https://emilianothelsrl.github.io/moldtech-crm/ (GitHub Pages, rama `main`, raíz).
+- **API:** `const API` en `index.html` → `https://script.google.com/macros/s/AKfycbzipZWKE5zs1webZFRQR06cWPmoTcQ6V1J3nCj1l4vHdMZXSPoAudPcWb6LTE982z4/exec`
+- El POST usa `Content-Type: text/plain` a propósito (evita el preflight CORS; Apps Script no lo soporta).
+- `apps-script/Code.gs` y `apps-script/appsscript.json` son **una copia de referencia** del backend. La versión que corre está en el proyecto Apps Script `1PSxa-8MqvI9hBglpcpUycVaLdExCEGhqfSQUi2jHMxgvhSm9R7LR6cf2` (cuenta jl.rangel). En la copia está REDACTADO `USUARIOS_INICIALES` (hashes de contraseñas): nunca subas hashes, contraseñas ni datos de prospectos a este repo (es público).
+
+## Cómo publicar cambios
+- **Pantalla (`index.html`):** commit + push a `main`. GitHub Pages se actualiza en 1–2 min.
+- **Backend:** pegar el código en el editor de Apps Script (con la cuenta jl.rangel) → Guardar → Implementar → Administrar implementaciones → ✏️ Editar → Versión: *Nueva versión* → Implementar. El URL `/exec` NO cambia. Si se agregan permisos (scopes) nuevos hay que correr una función desde el editor y aprobarlos marcando todas las casillas.
+- Mantén `apps-script/Code.gs` sincronizado con lo que se publique.
+
+## API (funciones permitidas en doPost)
+Todas, salvo `login`, reciben `token` como primer argumento. Sesión de 8 h en CacheService; error `"AUTH"` → la pantalla vuelve al login.
+| fn | args después del token | qué hace |
+|---|---|---|
+| `login` | `usuario, pw` (sin token) | → `{token, usuario, nombre, cambiar, email}`; bloquea 15 min tras 5 fallos |
+| `salir` | — | cierra sesión |
+| `cambiarPassword` | `actual, nueva` | mínimo 8 caracteres |
+| `guardarMiCorreo` | `correo` | correo personal del usuario (replyTo/cc e invitaciones) |
+| `init` | — | `{registros, correoInterno, usuario, nombre, equipo, remitentes, firmas}` |
+| `guardarConfig` | `correo` | correo interno para avisos de prospectos nuevos |
+| `guardar` | `registro, nota` | crea/actualiza fila; agrega nota al historial |
+| `borrar` | `id` | elimina fila |
+| `registrarNuevo` | `registro, resumen` | guarda y avisa por correo interno |
+| `agendar` | `id, fecha(YYYY-MM-DD), hora(HH:mm), tipo, invitarProspecto, invitados[], conMeet` | evento en Calendar con Meet y `sendUpdates:'all'` |
+| `enviarCorreo` | `id, asunto, cuerpo, desde, copiaMi, firma` | Gmail desde jl.rangel o un alias "Enviar como"; `firma` = clave de usuario → HTML con imagen de firma |
+
+## Modelo de datos (columnas de la hoja "Prospectos")
+`id, creado, editado, editadoPor, etapa, prioridad, estado, nombre, empresa, puesto, tel, email, ubicacion, maquinas, tipoMaquinas, monitoreo, problemas(JSON), interes, senal, motivo, accion, mensaje, consentimiento, proximo, reunion, notas, alertas, origen, tamano, historial(JSON), cartera`
+- `etapa`: Urgente · Interesado · Mensaje · Reunión · Cliente · Sin ajuste
+- `estado`: Nuevo · Contactado · Respondió · Reunión agendada · Propuesta enviada · Ganado · Perdido · Archivado
+- `cartera`: `Dirección` (la atienden los jefes) · `Equipo` (Emiliano y Patrick) · vacío = sin asignar. No usar nombres como "ultra importantes".
+- Para agregar columnas: añadir al final de `COLS` en el backend (la hoja agrega el encabezado sola).
+
+## Pantalla (`index.html`)
+Un solo archivo (HTML + CSS + JS, sin build). Fuente Plus Jakarta Sans, tema oscuro, diseño plano tipo Apple.
+Vistas: Hoy, Pipeline (kanban con drag & drop), Tabla; barra de Cartera (Todas/Dirección/Equipo/Sin asignar, en localStorage `mt_cartera`); ficha lateral con datos, mensaje (enviar correo con remitente y firma, WhatsApp, abrir en mi correo), agendar reunión e historial. Token en localStorage `mt_token`.
+
+## Firmas de correo
+Imágenes `firma-<usuario>.jpg` (1200×400) copiadas en la carpeta "MoldTech CRM" del Drive de jl.rangel, públicas por link; IDs en la propiedad `FIRMAS_IDS`. Se insertan como `<img src="https://lh3.googleusercontent.com/d/<id>=w1200">` (las imágenes `cid:` no se ven en Outlook móvil). Nombres y correos en `FIRMAS_DEF`.
+
+## Reglas
+- No tocar nada de la organización de GitHub `moldtech-ai` sin autorización explícita. Este repo es de la cuenta personal `emilianoTheLSrL`.
+- Nunca modificar la Google Sheet "Maquinas--- V2--Pendientes" (solo lectura).
+- Cambios reversibles: commits pequeños y claros.
+- No meter datos personales ni contraseñas en el repo.
+- Si sirves HTML desde Apps Script (`HtmlService`), escapa `//` dentro de strings de JS (`'https:\/\/…'`): HtmlService puede cortar esas líneas y romper la página. En GitHub Pages no pasa.
+
+## Pendientes conocidos
+1. Dominio propio gratis: `crm.moldtech.mx` (CNAME a `emilianothelsrl.github.io` + archivo `CNAME` en el repo) o Vercel/Netlify/Cloudflare Pages.
+2. Spam: configurar SPF (`v=spf1 include:_spf.google.com ~all`), DKIM (Google Admin → Gmail → Autenticar correo) y DMARC (`_dmarc`: `v=DMARC1; p=none; rua=mailto:jl.rangel@moldtech.mx`) en el DNS de moldtech.mx.
+3. Alias "Enviar como" `le.rosas@moldtech.mx` en la Gmail de jl.rangel (lo confirma le.rosas). Aparece solo en "Enviar desde" (caché de 1 h).
+4. Ideas: respaldo nocturno de la hoja, panel de administrador para José Luis, guardar solo campos modificados.
