@@ -357,6 +357,8 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+#dMsg{min-height:300px;line-height:1.55;font-size:16px;resize:vertical}
+@media (max-width:720px){#dMsg{min-height:360px}}
 </style>
 </head>
 <body>
@@ -852,6 +854,10 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     const ub=$('#f_ubicacion').value; $('#aMaps').href = 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(ub || r.empresa);
   }
   ['dMsg','f_tel','f_email','f_ubicacion'].forEach(id => $('#'+id).addEventListener('input', updLinks));
+  const crecerMsg = () => { const t=$('#dMsg'); t.style.height='auto'; t.style.height=Math.max(t.scrollHeight+4, 300)+'px'; };
+  $('#dMsg').addEventListener('input', crecerMsg);
+  document.addEventListener('click', e => { if (e.target.closest('[data-id]') || e.target.closest('#dTpl')) setTimeout(crecerMsg, 60); });
+  document.addEventListener('change', e => { if (e.target.id==='dTpl') setTimeout(crecerMsg, 30); });
   function abrir(id){ const r=data.find(x=>x.id===id); if(!r) return; llenarFicha(r); $('#scrim').hidden=false; $('#drawer').hidden=false; $('#dClose').focus(); }
   function cerrar(){ $('#scrim').hidden=true; $('#drawer').hidden=true; abierto=null; }
   $('#dClose').addEventListener('click', cerrar); $('#scrim').addEventListener('click', () => { if(!$('#acct').hidden){ $('#acct').hidden=true; if($('#drawer').hidden) $('#scrim').hidden=true; } else if(!$('#modal').hidden) cerrarModal(); else cerrar(); });
