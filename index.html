@@ -361,11 +361,17 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 @media (max-width:720px){#dMsg{min-height:360px}}
 .chip.av0{background:color-mix(in srgb,var(--s-int) 15%,transparent);color:var(--s-int)}
 .chip.av1{background:color-mix(in srgb,var(--s-msg) 15%,transparent);color:var(--s-msg)}
-.chip.av2,.chip.av3{background:color-mix(in srgb,var(--s-reu) 15%,transparent);color:var(--s-reu)}
+.chip.av2{background:color-mix(in srgb,#8e44ec 14%,transparent);color:#8e44ec}.chip.av3{background:color-mix(in srgb,var(--s-reu) 15%,transparent);color:var(--s-reu)}
 .chip.av4{background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary)}
 .chip.av5{background:color-mix(in srgb,var(--s-cli) 15%,transparent);color:var(--s-cli)}
 .chip.av6{background:var(--muted);color:var(--muted-fg)}
 #f_notas{min-height:200px;line-height:1.55;font-size:16px}
+.col-h.av0{color:var(--s-int)}.col-h.av1{color:var(--s-msg)}.col-h.av2{color:#8e44ec}.col-h.av3{color:var(--s-reu)}.col-h.av4{color:var(--primary)}.col-h.av5{color:var(--s-cli)}.col-h.av6{color:var(--muted-fg)}
+#dAvance{font-weight:600}
+.avsel.av0{color:var(--s-int)}.avsel.av1{color:var(--s-msg)}.avsel.av2{color:#8e44ec}.avsel.av3{color:var(--s-reu)}.avsel.av4{color:var(--primary)}.avsel.av5{color:var(--s-cli)}.avsel.av6{color:var(--muted-fg)}
+.avsel option{color:var(--fg)}
+.card[class*=cav]{border-left:4px solid var(--c,transparent)}.cav0{--c:var(--s-int)}.cav1{--c:var(--s-msg)}.cav2{--c:#8e44ec}.cav3{--c:var(--s-reu)}.cav4{--c:var(--primary)}.cav5{--c:var(--s-cli)}.cav6{--c:var(--muted-fg)}
+@media (prefers-color-scheme:dark){.chip.av2,.col-h.av2,.avsel.av2{color:#bf8bff}.cav2{--c:#bf8bff}}
 </style>
 </head>
 <body>
@@ -389,7 +395,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   </div>
   <div class="tabs" role="tablist" aria-label="Vistas">
     <button class="tab" role="tab" data-view="hoy" aria-selected="true"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg><span>Hoy</span></button>
-    <button class="tab" role="tab" data-view="pipeline" aria-selected="false"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span>Avance</span></button>
+    <button class="tab" role="tab" data-view="pipeline" aria-selected="false"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span>Etapas</span></button>
     <button class="tab" role="tab" data-view="lista" aria-selected="false"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.7.8 2.8 2.5 3 5.2"/></svg><span>Todos</span></button>
   </div>
   <label class="search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Buscar empresa, contacto o correo" aria-label="Buscar"></label>
@@ -421,7 +427,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 
   <!-- PIPELINE -->
   <section id="v-pipeline" class="view" hidden>
-    <div><h1>¿En qué va cada uno?</h1><p class="sub">Arrastra una tarjeta a otra columna o ábrela y cambia "¿En qué va?".</p></div>
+    <div><h1>Etapas</h1><p class="sub">Arrastra una tarjeta a otra columna o ábrela y cambia su etapa.</p></div>
     <div class="board" id="board"></div>
   </section>
 
@@ -455,10 +461,10 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   <div class="d-body">
     <div class="sec">
       <div class="grid2">
-        <div class="field"><label for="dAvance">¿En qué va?</label><select id="dAvance"></select></div>
+        <div class="field"><label for="dAvance">Etapa</label><select id="dAvance"></select></div>
         <div class="field"><label for="dCartera">¿Quién lo atiende?</label><select id="dCartera"><option value="">Sin asignar</option><option value="Dirección">Dirección</option><option value="Equipo">Equipo</option><option value="Alianzas">Alianzas</option></select></div>
       </div>
-      <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:15px"><input id="dUrg" type="checkbox" style="width:22px;height:22px;min-height:0">⚡ Es urgente</label>
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:15px"><input id="dUrg" type="checkbox" style="width:22px;height:22px;min-height:0">Urgente</label>
       <p class="note" id="dAccion"></p>
     </div>
 
@@ -671,8 +677,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   const PRIO = {Alta:0,Media:1,Baja:2,Archivar:3};
   /* "¿En qué va?": un solo paso de avance, calculado de etapa+estado (el backend no cambia) */
   const AVANCES = ['Por contactar','Ya le escribimos','Respondió','Reunión','Propuesta enviada','Cliente','No le interesa'];
-  const AV_ICO = {'Por contactar':'📞','Ya le escribimos':'✉️','Respondió':'💬','Reunión':'📅','Propuesta enviada':'📄','Cliente':'✅','No le interesa':'⏸️'};
-  function avance(r){
+    function avance(r){
     if (r.estado==='Ganado' || r.etapa==='Cliente') return 'Cliente';
     if (['Perdido','Archivado'].includes(r.estado) || r.etapa==='Sin ajuste') return 'No le interesa';
     if (r.estado==='Reunión agendada' || r.etapa==='Reunión') return 'Reunión';
@@ -706,7 +711,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   function toast(t){ const el=$('#toast'); el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,2600); }
   const stCls = e => 'st-' + String(e).split(' ')[0];
   const chipEtapa = e => `<span class="chip ${stCls(e)}"><span class="dot"></span>${esc(ETAPA_LBL[e]||e)}</span>`;
-  const chipAv = r => `<span class="chip av av${AVANCES.indexOf(avance(r))}">${AV_ICO[avance(r)]} ${esc(avance(r))}</span>` + (esUrgente(r) && !['Cliente','No le interesa'].includes(avance(r)) ? '<span class="chip st-Urgente">⚡ Urgente</span>' : '');
+  const chipAv = r => `<span class="chip av av${AVANCES.indexOf(avance(r))}"><span class="dot"></span>${esc(avance(r))}</span>` + (esUrgente(r) && !['Cliente','No le interesa'].includes(avance(r)) ? '<span class="chip st-Urgente">Urgente</span>' : '');
   const chipCons = c => c === 'Sí' ? '<span class="chip ok">Acepta mensajes</span>' : c === 'No' ? '<span class="chip warn">No acepta promociones</span>' : '';
 
   /* ---------- carga ---------- */
@@ -758,8 +763,8 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     // pipeline
     $('#board').innerHTML = AVANCES.map((e,i) => {
       const items = data.filter(r => avance(r)===e && match(r)).sort(ordenar);
-      return `<section class="col" data-etapa="${esc(e)}"><div class="col-h"><span>${AV_ICO[e]}</span><span style="color:var(--fg)">${esc(e)}</span><span class="n">${items.length}</span></div>` +
-        items.map(r => `<button type="button" class="card" draggable="true" data-id="${esc(r.id)}"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)}${r.puesto? ' · '+esc(r.puesto):''}</span><span class="a">${esc(r.accion||'')}</span><span class="foot">${chipCart(r.cartera)}${esUrgente(r)?'<span class="chip st-Urgente">⚡ Urgente</span>':''}${r.proximo?`<span class="chip">${fmtD(r.proximo)}</span>`:''}${r.maquinas?`<span class="chip">${esc(r.maquinas)} máq.</span>`:''}</span></button>`).join('') + '</section>';
+      return `<section class="col" data-etapa="${esc(e)}"><div class="col-h av${i}"><span class="dot"></span><span style="color:var(--fg)">${esc(e)}</span><span class="n">${items.length}</span></div>` +
+        items.map(r => `<button type="button" class="card cav${i}" draggable="true" data-id="${esc(r.id)}"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)}${r.puesto? ' · '+esc(r.puesto):''}</span><span class="a">${esc(r.accion||'')}</span><span class="foot">${chipCart(r.cartera)}${esUrgente(r)?'<span class="chip st-Urgente">Urgente</span>':''}${r.proximo?`<span class="chip">${fmtD(r.proximo)}</span>`:''}${r.maquinas?`<span class="chip">${esc(r.maquinas)} máq.</span>`:''}</span></button>`).join('') + '</section>';
     }).join('');
 
     // lista
@@ -829,7 +834,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   let dragId = null;
   $('#board').addEventListener('dragstart', e => { const c=e.target.closest('.card'); if(c){ dragId=c.dataset.id; e.dataTransfer.effectAllowed='move'; } });
   $('#board').addEventListener('dragover', e => { const col=e.target.closest('.col'); if(col&&dragId){ e.preventDefault(); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); col.classList.add('over'); } });
-  $('#board').addEventListener('drop', e => { const col=e.target.closest('.col'); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); if(!col||!dragId) return; e.preventDefault(); const r=data.find(x=>x.id===dragId); dragId=null; if(r && avance(r)!==col.dataset.etapa){ const old=avance(r); setAvance(r, col.dataset.etapa); render(); guardar(r, 'Avance: '+old+' → '+avance(r)); } });
+  $('#board').addEventListener('drop', e => { const col=e.target.closest('.col'); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); if(!col||!dragId) return; e.preventDefault(); const r=data.find(x=>x.id===dragId); dragId=null; if(r && avance(r)!==col.dataset.etapa){ const old=avance(r); setAvance(r, col.dataset.etapa); render(); guardar(r, 'Etapa: '+old+' → '+avance(r)); } });
 
   /* ---------- ficha ---------- */
   const onlyDigits = t => String(t||'').replace(/\D/g,'');
@@ -840,8 +845,8 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#dTitle').textContent = r.empresa || 'Sin empresa';
     $('#dSub').textContent = [r.nombre, r.puesto].filter(Boolean).join(' · ');
     $('#dChips').innerHTML = chipAv(r) + chipCons(r.consentimiento) + (r.origen?`<span class="chip">${esc(r.origen)}</span>`:'');
-    $('#dAvance').innerHTML = AVANCES.map(e=>`<option value="${esc(e)}" ${e===avance(r)?'selected':''}>${AV_ICO[e]} ${esc(e)}</option>`).join('');
-    $('#dUrg').checked = esUrgente(r);
+    $('#dAvance').innerHTML = AVANCES.map(e=>`<option value="${esc(e)}" ${e===avance(r)?'selected':''}>${esc(e)}</option>`).join('');
+    $('#dUrg').checked = esUrgente(r); $('#dAvance').className = 'avsel av' + AVANCES.indexOf(avance(r));
     $('#dCartera').value = r.cartera || '';
     const cuentas = [...new Set(['jl.rangel@moldtech.mx', 'le.rosas@moldtech.mx', ...remitentes])];
     $('#dFrom').innerHTML = cuentas.map(m => {
@@ -913,7 +918,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     try{ const s = await gs('guardar', r, nota||''); const i=data.findIndex(x=>x.id===s.id); if(i>=0) data[i]=s; else data.push(s); render(); if(abierto && abierto.id===s.id) llenarFicha(s); return s; }
     catch(e){ toast('No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.'); throw e; }
   }
-  $('#dAvance').addEventListener('change', () => { const r=abierto, old=avance(r); setAvance(r, $('#dAvance').value); if ($('#dUrg').checked && ['Nuevo','Contactado','Respondió'].includes(r.estado)) r.etapa='Urgente'; guardar(r,'Avance: '+old+' → '+avance(r)).then(()=>toast('Avance actualizado')); });
+  $('#dAvance').addEventListener('change', () => { const r=abierto, old=avance(r); setAvance(r, $('#dAvance').value); if ($('#dUrg').checked && ['Nuevo','Contactado','Respondió'].includes(r.estado)) r.etapa='Urgente'; $('#dAvance').className = 'avsel av' + AVANCES.indexOf(avance(r)); guardar(r,'Etapa: '+old+' → '+avance(r)).then(()=>toast('Etapa actualizada')); });
   $('#dUrg').addEventListener('change', () => { const r=abierto; if ($('#dUrg').checked) r.etapa='Urgente'; else if (r.etapa==='Urgente') r.etapa='Interesado'; guardar(r, $('#dUrg').checked ? 'Marcado como urgente' : 'Ya no es urgente').then(()=>toast('Listo')); });
   $('#dCartera').addEventListener('change', () => { const r=abierto, old=r.cartera||'Sin asignar'; r.cartera=$('#dCartera').value; guardar(r,'Cartera: '+old+' → '+(r.cartera||'Sin asignar')).then(()=>toast('Cartera actualizada')); });
 

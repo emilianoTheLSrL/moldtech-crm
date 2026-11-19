@@ -48,7 +48,7 @@ Todas, salvo `login`, reciben `token` como primer argumento. Sesión de 8 h en C
 - Para agregar columnas: añadir al final de `COLS` en el backend (la hoja agrega el encabezado sola).
 
 ## "¿En qué va?" (pantalla)
-La pantalla ya no muestra Etapa y Estado por separado: un solo campo **¿En qué va?** (Por contactar · Ya le escribimos · Respondió · Reunión · Propuesta enviada · Cliente · No le interesa) más la casilla **⚡ Es urgente**. Se calcula y se guarda con `avance(r)` / `setAvance(r, a)` sobre las columnas `etapa` y `estado` (el backend no cambió). Pestañas: Hoy · Avance · Todos.
+La pantalla ya no muestra Etapa y Estado por separado: un solo campo **Etapa** (con color por etapa, sin emojis) (Por contactar · Ya le escribimos · Respondió · Reunión · Propuesta enviada · Cliente · No le interesa) más la casilla **Urgente**. Se calcula y se guarda con `avance(r)` / `setAvance(r, a)` sobre las columnas `etapa` y `estado` (el backend no cambió). Pestañas: Hoy · Etapas · Todos.
 
 ## Pantalla (`index.html`)
 Un solo archivo (HTML + CSS + JS, sin build). Estilo Apple (HIG, skill ehmo/platform-design-skills web+iOS): letra del sistema (SF), barra translúcida, controles segmentados, modo claro/oscuro automático; en celular, pestañas abajo y ficha como hoja de iPhone. Instalable como app (manifest.json + apple-touch-icon.png).
