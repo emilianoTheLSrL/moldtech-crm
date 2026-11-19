@@ -397,6 +397,10 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
         <a class="btn accent" id="aWa" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp</a>
         <a class="btn" id="aMail" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>Abrir en mi correo</a>
       </div>
+      <div class="confirm" id="waConfirm" hidden>
+        <p class="note">¿Sí enviaste el WhatsApp a <b id="waWho"></b>?</p>
+        <div class="actions"><button class="btn" type="button" id="waNo">No lo envié</button><button class="btn primary" type="button" id="waYes">Sí, lo envié</button></div>
+      </div>
       <p class="note" id="linkHint" hidden></p>
       <p class="note">El correo se envía solo, desde la cuenta elegida, y queda en el historial. Las respuestas del prospecto te llegan a tu correo de "Mi cuenta". WhatsApp sí lo tienes que mandar tú.</p>
     </div>
@@ -721,6 +725,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
   function waNum(t){ let d = onlyDigits(t); if (d.length===10) d = '52'+d; return d; }
   function llenarFicha(r){
     abierto = r;
+    waMostrar();
     $('#dTitle').textContent = r.empresa || 'Sin empresa';
     $('#dSub').textContent = [r.nombre, r.puesto].filter(Boolean).join(' · ');
     $('#dChips').innerHTML = chipEtapa(r.etapa) + (r.prioridad?`<span class="chip">Prioridad ${esc(r.prioridad)}</span>`:'') + chipCons(r.consentimiento) + (r.origen?`<span class="chip">${esc(r.origen)}</span>`:'');
@@ -769,6 +774,25 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
   function cerrar(){ $('#scrim').hidden=true; $('#drawer').hidden=true; abierto=null; }
   $('#dClose').addEventListener('click', cerrar); $('#scrim').addEventListener('click', () => { if(!$('#acct').hidden){ $('#acct').hidden=true; if($('#drawer').hidden) $('#scrim').hidden=true; } else if(!$('#modal').hidden) cerrarModal(); else cerrar(); });
   document.addEventListener('keydown', e => { if(e.key==='Escape'){ if(!$('#modal').hidden) cerrarModal(); else if(!$('#drawer').hidden) cerrar(); } });
+
+  /* ---------- WhatsApp: confirmar si se envió ---------- */
+  const waPend = () => { try { return JSON.parse(store.get('mt_wa_pend') || 'null'); } catch(e) { return null; } };
+  function waMostrar(){ const p = waPend(), ok = !!(p && abierto && p.id === abierto.id); $('#waConfirm').hidden = !ok; if (ok) $('#waWho').textContent = abierto.nombre || abierto.empresa || 'este contacto'; }
+  function waRevisar(){
+    const p = waPend(); if (!p || document.hidden) return;
+    if (Date.now() - p.t > 12*3600*1000) { store.set('mt_wa_pend', null); return; }
+    if (!abierto || abierto.id !== p.id) { if (!data.some(x => x.id === p.id)) return; abrir(p.id); }
+    waMostrar();
+  }
+  $('#aWa').addEventListener('click', () => { if (!abierto || !$('#aWa').getAttribute('href')) return; store.set('mt_wa_pend', JSON.stringify({ id: abierto.id, t: Date.now() })); setTimeout(waMostrar, 300); });
+  document.addEventListener('visibilitychange', waRevisar);
+  window.addEventListener('focus', waRevisar);
+  $('#waNo').addEventListener('click', () => { store.set('mt_wa_pend', null); waMostrar(); });
+  $('#waYes').addEventListener('click', async () => {
+    const p = waPend(), r = p && data.find(x => x.id === p.id); store.set('mt_wa_pend', null); waMostrar(); if (!r) return;
+    const old = r.estado; if (r.estado === 'Nuevo') r.estado = 'Contactado';
+    try { await guardar(r, 'Mensaje enviado por WhatsApp' + (old !== r.estado ? ' · Estado: ' + old + ' → ' + r.estado : '')); toast('Registrado: WhatsApp enviado'); } catch(e) {}
+  });
 
   async function guardar(r, nota){
     try{ const s = await gs('guardar', r, nota||''); const i=data.findIndex(x=>x.id===s.id); if(i>=0) data[i]=s; else data.push(s); render(); if(abierto && abierto.id===s.id) llenarFicha(s); return s; }
