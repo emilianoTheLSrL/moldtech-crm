@@ -301,6 +301,62 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 @keyframes flash{0%{box-shadow:0 0 0 3px var(--ring)}100%{box-shadow:var(--shadow)}}
 .panel.flash{animation:flash 1.2s ease}
 .panel{scroll-margin-top:90px}
+/* Indicador persistente: sigue los atributos existentes, sin modificar JavaScript. */
+@supports selector(:has(*)){
+  .cartera{overflow-x:auto;padding-block:4px;scrollbar-width:thin}
+  #carteraBar{--cartera-pos:0;position:relative;isolation:isolate;display:grid;grid-template-columns:repeat(5,minmax(112px,1fr));min-width:580px;flex:1;gap:0;padding:3px}
+  #carteraBar::before{content:"";position:absolute;inset:3px auto 3px 3px;width:calc((100% - 6px)/5);border-radius:8px;background:var(--card);box-shadow:0 2px 8px rgba(0,0,0,.12);transform:translateX(calc(var(--cartera-pos)*100%));transition:transform .24s var(--ease-out);pointer-events:none}
+  #carteraBar:empty::before{display:none}
+  #carteraBar:has([data-cart="Dirección"][aria-pressed="true"]){--cartera-pos:1}
+  #carteraBar:has([data-cart="Equipo"][aria-pressed="true"]){--cartera-pos:2}
+  #carteraBar:has([data-cart="Alianzas"][aria-pressed="true"]){--cartera-pos:3}
+  #carteraBar:has([data-cart=""][aria-pressed="true"]){--cartera-pos:4}
+  #carteraBar button{position:relative;z-index:1;white-space:nowrap;padding-inline:10px;background:transparent;box-shadow:none}
+  @media (prefers-color-scheme:dark){#carteraBar::before{background:#636366}}
+  body:has(#drawer:not([hidden])){overflow:hidden}
+}
+/* La ficha mantiene un solo botón Guardar y sus manejadores originales. */
+.drawer{max-height:100dvh}
+.d-body{min-height:0;overscroll-behavior:contain;scroll-padding-block:20px;scroll-behavior:smooth}
+.drawer-footer{flex:none;display:flex;gap:10px;align-items:center;padding:12px 20px max(12px,env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--sep)}
+.drawer-footer .btn{flex:1;min-height:44px}
+.drawer-footer .btn.ghost{flex:0 1 auto}
+.drawer-footer:focus-within{position:relative;z-index:1}
+#aSave:disabled,#aLog:disabled,#lBtn:disabled{cursor:progress}
+#aSave:disabled::after,#aLog:disabled::after,#lBtn:disabled::after{content:"";width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:busySpin .7s linear infinite;flex:none}
+@keyframes busySpin{to{transform:rotate(360deg)}}
+.toast{line-height:1.45;text-align:center;overflow-wrap:anywhere;max-height:35dvh;overflow-y:auto}
+.loading-preview{display:grid;gap:12px;text-align:left}
+.loading-preview .skeleton{display:block;height:12px;border-radius:6px;background:var(--muted);animation:loadingPulse 1.2s ease-in-out infinite alternate}
+.loading-preview .skeleton:nth-of-type(2){width:70%}
+.loading-preview .skeleton:nth-of-type(3){width:45%}
+@keyframes loadingPulse{to{opacity:.4}}
+/* Usa el estado .over que el pipeline ya publica durante el arrastre. */
+.col{transition:background-color .16s ease,outline-color .16s ease;min-height:240px}
+.col.over{outline:2px dashed var(--accent);outline-offset:0;background:color-mix(in srgb,var(--accent) 9%,var(--bg))}
+.col.over::after{content:"Soltar en esta etapa";display:block;padding:16px 10px;border:1px dashed var(--accent);border-radius:12px;color:var(--accent);font-size:13px;text-align:center;pointer-events:none}
+/* Navegadores compatibles animan también el cierre; el resto conserva la apertura. */
+@supports (transition-behavior:allow-discrete){
+  .drawer{--sheet-off:translateX(40px);animation:none;opacity:1;transform:none;transition:opacity .2s ease,transform .26s var(--ease-out),display .26s allow-discrete}
+  .drawer[hidden]{opacity:0;transform:var(--sheet-off);pointer-events:none}
+  .scrim{animation:none!important;opacity:1;transition:opacity .2s ease,display .2s allow-discrete}
+  .scrim[hidden]{opacity:0;pointer-events:none}
+  @starting-style{.drawer:not([hidden]){opacity:0;transform:var(--sheet-off)}.scrim:not([hidden]){opacity:0}}
+  @media (max-width:720px){.drawer{--sheet-off:translateY(100%)}}
+}
+@media (max-width:720px){
+  .drawer{height:calc(100dvh - 16px)}
+  .d-body{padding:12px 12px 20px;gap:12px}
+  .d-body .sec{padding:16px}
+  .d-body .grid2{grid-template-columns:1fr}
+  .d-body textarea{min-height:112px}
+  .drawer-footer{padding-inline:12px;gap:6px}
+  .drawer-footer .btn{padding-inline:10px;font-size:14px}
+  .field input,.field select,.field textarea{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
 </style>
 </head>
 <body>
@@ -346,7 +402,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     <div class="kpis" id="kpis"></div>
     <div class="panel">
       <div class="panel-h"><h2>Para hoy</h2><span class="note" id="hoyN"></span></div>
-      <div id="listaHoy"><p class="empty">Cargando prospectos…</p></div>
+      <div id="listaHoy"><p class="empty loading-preview" role="status">Cargando prospectos…<span class="skeleton" aria-hidden="true"></span><span class="skeleton" aria-hidden="true"></span><span class="skeleton" aria-hidden="true"></span></p></div>
     </div>
     <div class="panel">
       <div class="panel-h"><h2>Próximas reuniones</h2></div>
@@ -467,7 +523,6 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       <div class="field"><label for="f_notas">Notas</label><textarea id="f_notas"></textarea></div>
       <p class="note" id="dExtra"></p>
       <div class="actions">
-        <button class="btn primary" type="button" id="aSave">Guardar cambios</button>
         <a class="btn" id="aTel" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg>Llamar</a>
       </div>
     </div>
@@ -484,6 +539,11 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
         <div class="actions"><button class="btn" type="button" id="aDelNo">Cancelar</button><button class="btn" type="button" id="aDelYes" style="background:var(--danger);border-color:var(--danger);color:#fff">Sí, eliminar</button></div>
       </div>
     </div>
+  </div>
+  <div class="drawer-footer">
+    <a class="btn ghost" href="#dMsg">Mensaje</a>
+    <a class="btn ghost" href="#f_nombre">Datos</a>
+    <button class="btn primary" type="button" id="aSave">Guardar cambios</button>
   </div>
 </aside>
 
@@ -589,7 +649,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   </div></div>
 </div>
 
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
 
 <script>window.onerror=function(m,u,l,c){var e=document.getElementById("lMsg");if(e)e.textContent="Error: "+m+" ("+l+":"+c+")";};</script>
 <script>
