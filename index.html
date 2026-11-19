@@ -359,6 +359,13 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 }
 #dMsg{min-height:300px;line-height:1.55;font-size:16px;resize:vertical}
 @media (max-width:720px){#dMsg{min-height:360px}}
+.chip.av0{background:color-mix(in srgb,var(--s-int) 15%,transparent);color:var(--s-int)}
+.chip.av1{background:color-mix(in srgb,var(--s-msg) 15%,transparent);color:var(--s-msg)}
+.chip.av2,.chip.av3{background:color-mix(in srgb,var(--s-reu) 15%,transparent);color:var(--s-reu)}
+.chip.av4{background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary)}
+.chip.av5{background:color-mix(in srgb,var(--s-cli) 15%,transparent);color:var(--s-cli)}
+.chip.av6{background:var(--muted);color:var(--muted-fg)}
+#f_notas{min-height:200px;line-height:1.55;font-size:16px}
 </style>
 </head>
 <body>
@@ -382,8 +389,8 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   </div>
   <div class="tabs" role="tablist" aria-label="Vistas">
     <button class="tab" role="tab" data-view="hoy" aria-selected="true"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg><span>Hoy</span></button>
-    <button class="tab" role="tab" data-view="pipeline" aria-selected="false"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span>Pipeline</span></button>
-    <button class="tab" role="tab" data-view="lista" aria-selected="false"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.7.8 2.8 2.5 3 5.2"/></svg><span>Clientes</span></button>
+    <button class="tab" role="tab" data-view="pipeline" aria-selected="false"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span>Avance</span></button>
+    <button class="tab" role="tab" data-view="lista" aria-selected="false"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.7.8 2.8 2.5 3 5.2"/></svg><span>Todos</span></button>
   </div>
   <label class="search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Buscar empresa, contacto o correo" aria-label="Buscar"></label>
   <button class="btn primary" id="btnNuevo" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>Nuevo prospecto</button>
@@ -414,14 +421,14 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 
   <!-- PIPELINE -->
   <section id="v-pipeline" class="view" hidden>
-    <div><h1>Pipeline</h1><p class="sub">Arrastra una tarjeta para cambiarla de etapa, o ábrela y cambia la etapa en su ficha.</p></div>
+    <div><h1>¿En qué va cada uno?</h1><p class="sub">Arrastra una tarjeta a otra columna o ábrela y cambia "¿En qué va?".</p></div>
     <div class="board" id="board"></div>
   </section>
 
   <!-- LISTA -->
   <section id="v-lista" class="view" hidden>
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px">
-      <div><h1>Clientes y prospectos</h1><p class="sub" id="listaN"></p><button class="btn" id="btnExcel" type="button" style="margin-top:10px">Descargar Excel</button></div>
+      <div><h1>Todos los prospectos</h1><p class="sub" id="listaN"></p><button class="btn" id="btnExcel" type="button" style="margin-top:10px">Descargar Excel</button></div>
       <div class="field" style="min-width:240px"><label for="cfgMail">Correo interno (recibe avisos e invitaciones)</label><input id="cfgMail" type="email" placeholder="correo@moldtech.mx"></div>
     </div>
     <div class="filters" id="filters"></div>
@@ -448,10 +455,10 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   <div class="d-body">
     <div class="sec">
       <div class="grid2">
-        <div class="field"><label for="dEtapa">Etapa</label><select id="dEtapa"></select></div>
-        <div class="field"><label for="dEstado">Estado</label><select id="dEstado"></select></div>
-        <div class="field"><label for="dCartera">Cartera (quién lo atiende)</label><select id="dCartera"><option value="">Sin asignar</option><option value="Dirección">Dirección</option><option value="Equipo">Equipo</option><option value="Alianzas">Alianzas</option></select></div>
+        <div class="field"><label for="dAvance">¿En qué va?</label><select id="dAvance"></select></div>
+        <div class="field"><label for="dCartera">¿Quién lo atiende?</label><select id="dCartera"><option value="">Sin asignar</option><option value="Dirección">Dirección</option><option value="Equipo">Equipo</option><option value="Alianzas">Alianzas</option></select></div>
       </div>
+      <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:15px"><input id="dUrg" type="checkbox" style="width:22px;height:22px;min-height:0">⚡ Es urgente</label>
       <p class="note" id="dAccion"></p>
     </div>
 
@@ -662,6 +669,25 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   const ETAPA_LBL = {Urgente:'Urgente',Interesado:'Interesados',Mensaje:'Mensaje',Reunión:'Reunión agendada',Cliente:'Cliente','Sin ajuste':'Sin ajuste'};
   const ESTADOS = ['Nuevo','Contactado','Respondió','Reunión agendada','Propuesta enviada','Ganado','Perdido','Archivado'];
   const PRIO = {Alta:0,Media:1,Baja:2,Archivar:3};
+  /* "¿En qué va?": un solo paso de avance, calculado de etapa+estado (el backend no cambia) */
+  const AVANCES = ['Por contactar','Ya le escribimos','Respondió','Reunión','Propuesta enviada','Cliente','No le interesa'];
+  const AV_ICO = {'Por contactar':'📞','Ya le escribimos':'✉️','Respondió':'💬','Reunión':'📅','Propuesta enviada':'📄','Cliente':'✅','No le interesa':'⏸️'};
+  function avance(r){
+    if (r.estado==='Ganado' || r.etapa==='Cliente') return 'Cliente';
+    if (['Perdido','Archivado'].includes(r.estado) || r.etapa==='Sin ajuste') return 'No le interesa';
+    if (r.estado==='Reunión agendada' || r.etapa==='Reunión') return 'Reunión';
+    if (r.estado==='Propuesta enviada') return 'Propuesta enviada';
+    if (r.estado==='Respondió') return 'Respondió';
+    if (r.estado==='Contactado') return 'Ya le escribimos';
+    return 'Por contactar';
+  }
+  function setAvance(r, a){
+    const temprana = e => ['Urgente','Interesado','Mensaje'].includes(e) ? e : 'Interesado';
+    const m = {'Por contactar':['Nuevo'],'Ya le escribimos':['Contactado'],'Respondió':['Respondió'],'Reunión':['Reunión agendada','Reunión'],
+      'Propuesta enviada':['Propuesta enviada'],'Cliente':['Ganado','Cliente'],'No le interesa':['Perdido','Sin ajuste']}[a];
+    r.estado = m[0]; r.etapa = m[1] || temprana(r.etapa);
+  }
+  const esUrgente = r => r.etapa==='Urgente';
   const store = { get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,v); }catch(e){} } };
   let token = store.get('mt_token'), equipo = [], yo = null, remitentes = [], firmas = [], miClave = '';
   const API = 'https://script.google.com/macros/s/AKfycbzipZWKE5zs1webZFRQR06cWPmoTcQ6V1J3nCj1l4vHdMZXSPoAudPcWb6LTE982z4/exec';
@@ -680,6 +706,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   function toast(t){ const el=$('#toast'); el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,2600); }
   const stCls = e => 'st-' + String(e).split(' ')[0];
   const chipEtapa = e => `<span class="chip ${stCls(e)}"><span class="dot"></span>${esc(ETAPA_LBL[e]||e)}</span>`;
+  const chipAv = r => `<span class="chip av av${AVANCES.indexOf(avance(r))}">${AV_ICO[avance(r)]} ${esc(avance(r))}</span>` + (esUrgente(r) && !['Cliente','No le interesa'].includes(avance(r)) ? '<span class="chip st-Urgente">⚡ Urgente</span>' : '');
   const chipCons = c => c === 'Sí' ? '<span class="chip ok">Acepta mensajes</span>' : c === 'No' ? '<span class="chip warn">No acepta promociones</span>' : '';
 
   /* ---------- carga ---------- */
@@ -724,28 +751,28 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#listaHoy').innerHTML = lst.length ? lst.map(r => {
       const late = r.proximo && r.proximo < hoy;
       const when = r.proximo ? (late ? 'Vencido · ' + fmtD(r.proximo) : 'Hoy') : 'Contactar';
-      return `<button type="button" class="row" data-id="${esc(r.id)}">${chipEtapa(r.etapa)}<span class="main"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)} · ${esc(r.accion || 'Dar seguimiento')}</span></span>${chipCart(r.cartera)}<span class="when ${late?'late':''}">${when}</span></button>`;
+      return `<button type="button" class="row" data-id="${esc(r.id)}">${chipAv(r)}<span class="main"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)} · ${esc(r.accion || 'Dar seguimiento')}</span></span>${chipCart(r.cartera)}<span class="when ${late?'late':''}">${when}</span></button>`;
     }).join('') : '<p class="empty">No hay seguimientos pendientes para hoy. Revisa el pipeline para elegir a quién contactar.</p>';
     $('#listaReu').innerHTML = reus.length ? reus.map(r => `<button type="button" class="row" data-id="${esc(r.id)}"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg><span class="main"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.reunion)}</span></span></button>`).join('') : '<p class="empty">Aún no hay reuniones agendadas. Agenda una desde la ficha de un prospecto.</p>';
 
     // pipeline
-    $('#board').innerHTML = ETAPAS.map(e => {
-      const items = data.filter(r => r.etapa===e && match(r)).sort(ordenar);
-      return `<section class="col" data-etapa="${esc(e)}"><div class="col-h ${stCls(e)}"><span class="dot"></span><span style="color:var(--fg)">${esc(ETAPA_LBL[e])}</span><span class="n">${items.length}</span></div>` +
-        items.map(r => `<button type="button" class="card" draggable="true" data-id="${esc(r.id)}"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)}${r.puesto? ' · '+esc(r.puesto):''}</span><span class="a">${esc(r.accion||'')}</span><span class="foot">${chipCart(r.cartera)}<span class="chip">${esc(r.estado)}</span>${r.proximo?`<span class="chip">${fmtD(r.proximo)}</span>`:''}${r.maquinas?`<span class="chip">${esc(r.maquinas)} máq.</span>`:''}</span></button>`).join('') + '</section>';
+    $('#board').innerHTML = AVANCES.map((e,i) => {
+      const items = data.filter(r => avance(r)===e && match(r)).sort(ordenar);
+      return `<section class="col" data-etapa="${esc(e)}"><div class="col-h"><span>${AV_ICO[e]}</span><span style="color:var(--fg)">${esc(e)}</span><span class="n">${items.length}</span></div>` +
+        items.map(r => `<button type="button" class="card" draggable="true" data-id="${esc(r.id)}"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)}${r.puesto? ' · '+esc(r.puesto):''}</span><span class="a">${esc(r.accion||'')}</span><span class="foot">${chipCart(r.cartera)}${esUrgente(r)?'<span class="chip st-Urgente">⚡ Urgente</span>':''}${r.proximo?`<span class="chip">${fmtD(r.proximo)}</span>`:''}${r.maquinas?`<span class="chip">${esc(r.maquinas)} máq.</span>`:''}</span></button>`).join('') + '</section>';
     }).join('');
 
     // lista
-    const fl = ['Todos', ...ETAPAS, 'Aceptan mensajes'];
-    $('#filters').innerHTML = fl.map(f => `<button type="button" class="fchip" data-f="${esc(f)}" aria-pressed="${f===filtro}">${esc(ETAPA_LBL[f]||f)} · ${f==='Todos'?data.filter(enCartera).length:f==='Aceptan mensajes'?data.filter(r=>enCartera(r)&&r.consentimiento==='Sí').length:data.filter(r=>enCartera(r)&&r.etapa===f).length}</button>`).join('');
-    const rows = data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Aceptan mensajes' ? r.consentimiento==='Sí' : r.etapa===filtro))).sort(ordenar);
+    const fl = ['Todos', 'Urgentes', ...AVANCES];
+    $('#filters').innerHTML = fl.map(f => `<button type="button" class="fchip" data-f="${esc(f)}" aria-pressed="${f===filtro}">${esc(ETAPA_LBL[f]||f)} · ${f==='Todos'?data.filter(enCartera).length:f==='Aceptan mensajes'?data.filter(r=>enCartera(r)&&r.consentimiento==='Sí').length:f==='Urgentes'?data.filter(r=>enCartera(r)&&esUrgente(r)).length:data.filter(r=>enCartera(r)&&avance(r)===f).length}</button>`).join('');
+    const rows = data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Urgentes' ? esUrgente(r) : avance(r)===filtro))).sort(ordenar);
     $('#listaN').textContent = rows.length + ' de ' + data.length + ' registros';
-    $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option><option ${r.cartera==='Alianzas'?'selected':''}>Alianzas</option></select></td><td>${chipEtapa(r.etapa)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
+    $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option><option ${r.cartera==='Alianzas'?'selected':''}>Alianzas</option></select></td><td>${chipAv(r)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
   }
 
   /* ---------- exportar a Excel (lo que se ve en la tabla) ---------- */
   function filasVisibles(){
-    return data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Aceptan mensajes' ? r.consentimiento==='Sí' : r.etapa===filtro))).sort(ordenar);
+    return data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Urgentes' ? esUrgente(r) : avance(r)===filtro))).sort(ordenar);
   }
   function cargarXLSX(){
     if (window.XLSX) return Promise.resolve(window.XLSX);
@@ -802,7 +829,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   let dragId = null;
   $('#board').addEventListener('dragstart', e => { const c=e.target.closest('.card'); if(c){ dragId=c.dataset.id; e.dataTransfer.effectAllowed='move'; } });
   $('#board').addEventListener('dragover', e => { const col=e.target.closest('.col'); if(col&&dragId){ e.preventDefault(); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); col.classList.add('over'); } });
-  $('#board').addEventListener('drop', e => { const col=e.target.closest('.col'); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); if(!col||!dragId) return; e.preventDefault(); const r=data.find(x=>x.id===dragId); dragId=null; if(r && r.etapa!==col.dataset.etapa){ const old=r.etapa; r.etapa=col.dataset.etapa; render(); guardar(r, 'Etapa: '+old+' → '+r.etapa); } });
+  $('#board').addEventListener('drop', e => { const col=e.target.closest('.col'); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); if(!col||!dragId) return; e.preventDefault(); const r=data.find(x=>x.id===dragId); dragId=null; if(r && avance(r)!==col.dataset.etapa){ const old=avance(r); setAvance(r, col.dataset.etapa); render(); guardar(r, 'Avance: '+old+' → '+avance(r)); } });
 
   /* ---------- ficha ---------- */
   const onlyDigits = t => String(t||'').replace(/\D/g,'');
@@ -812,8 +839,9 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     waMostrar();
     $('#dTitle').textContent = r.empresa || 'Sin empresa';
     $('#dSub').textContent = [r.nombre, r.puesto].filter(Boolean).join(' · ');
-    $('#dChips').innerHTML = chipEtapa(r.etapa) + (r.prioridad?`<span class="chip">Prioridad ${esc(r.prioridad)}</span>`:'') + chipCons(r.consentimiento) + (r.origen?`<span class="chip">${esc(r.origen)}</span>`:'');
-    $('#dEtapa').innerHTML = ETAPAS.map(e=>`<option value="${esc(e)}" ${e===r.etapa?'selected':''}>${esc(ETAPA_LBL[e])}</option>`).join('');
+    $('#dChips').innerHTML = chipAv(r) + chipCons(r.consentimiento) + (r.origen?`<span class="chip">${esc(r.origen)}</span>`:'');
+    $('#dAvance').innerHTML = AVANCES.map(e=>`<option value="${esc(e)}" ${e===avance(r)?'selected':''}>${AV_ICO[e]} ${esc(e)}</option>`).join('');
+    $('#dUrg').checked = esUrgente(r);
     $('#dCartera').value = r.cartera || '';
     const cuentas = [...new Set(['jl.rangel@moldtech.mx', 'le.rosas@moldtech.mx', ...remitentes])];
     $('#dFrom').innerHTML = cuentas.map(m => {
@@ -825,7 +853,6 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#sendConfirm').hidden = true; $('#aSend').hidden = false;
     $('#dSig').innerHTML = firmas.map(f=>`<option value="${esc(f.k)}" ${f.k===miClave?'selected':''}>${esc(f.n)}</option>`).join('') + '<option value="">Sin firma</option>';
     sigSync();
-    $('#dEstado').innerHTML = ESTADOS.map(e=>`<option ${e===r.estado?'selected':''}>${esc(e)}</option>`).join('');
     $('#dAccion').textContent = r.accion ? 'Siguiente acción sugerida: ' + r.accion : '';
     $('#dMsg').value = r.mensaje || ('Hola' + (r.nombre && r.nombre!=='Por identificar' ? ', '+r.nombre.split(' ')[0] : '') + '. Te contacto del equipo MoldTech a raíz de Plastimagen 2026. ¿Podemos agendar 15 minutos para mostrarte cómo monitorear tu producción en tiempo real?');
     $('#dTpl').innerHTML = '<option value="">Mensaje guardado / escribir el mío</option>' + PLANTILLAS.map((t,i)=>`<option value="${i}">${esc(t.n)}</option>`).join('');
@@ -886,9 +913,10 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     try{ const s = await gs('guardar', r, nota||''); const i=data.findIndex(x=>x.id===s.id); if(i>=0) data[i]=s; else data.push(s); render(); if(abierto && abierto.id===s.id) llenarFicha(s); return s; }
     catch(e){ toast('No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.'); throw e; }
   }
-  $('#dEtapa').addEventListener('change', () => { const r=abierto, old=r.etapa; r.etapa=$('#dEtapa').value; guardar(r,'Etapa: '+old+' → '+r.etapa).then(()=>toast('Etapa actualizada')); });
+  $('#dAvance').addEventListener('change', () => { const r=abierto, old=avance(r); setAvance(r, $('#dAvance').value); if ($('#dUrg').checked && ['Nuevo','Contactado','Respondió'].includes(r.estado)) r.etapa='Urgente'; guardar(r,'Avance: '+old+' → '+avance(r)).then(()=>toast('Avance actualizado')); });
+  $('#dUrg').addEventListener('change', () => { const r=abierto; if ($('#dUrg').checked) r.etapa='Urgente'; else if (r.etapa==='Urgente') r.etapa='Interesado'; guardar(r, $('#dUrg').checked ? 'Marcado como urgente' : 'Ya no es urgente').then(()=>toast('Listo')); });
   $('#dCartera').addEventListener('change', () => { const r=abierto, old=r.cartera||'Sin asignar'; r.cartera=$('#dCartera').value; guardar(r,'Cartera: '+old+' → '+(r.cartera||'Sin asignar')).then(()=>toast('Cartera actualizada')); });
-  $('#dEstado').addEventListener('change', () => { const r=abierto, old=r.estado; r.estado=$('#dEstado').value; guardar(r,'Estado: '+old+' → '+r.estado).then(()=>toast('Estado actualizado')); });
+
   $('#aSend').addEventListener('click', () => {
     const r=abierto, mail=$('#f_email').value.trim();
     if(!mail){ toast('Este prospecto no tiene correo. Agrégalo en Datos y guarda.'); return; }
