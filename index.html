@@ -225,7 +225,7 @@ button.kpi:hover,.card:hover{border-color:transparent;filter:brightness(.985)}
   .brand{flex:1}
   .search{order:5;flex-basis:100%}
   #btnNuevo{padding:10px 12px}
-  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;border-radius:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(3,1fr);background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep)}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;border-radius:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(4,1fr);background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep)}
   .tab{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:500;color:var(--muted-fg);min-height:49px;padding:4px}
   .tab .tico{display:block;width:26px;height:26px}
   .tab[aria-selected="true"]{background:transparent;box-shadow:none;color:var(--primary)}
@@ -380,6 +380,29 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 .confeti i{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:caer var(--d,1.6s) cubic-bezier(.2,.6,.4,1) forwards}
 @keyframes caer{to{transform:translate(var(--x,0),105vh) rotate(var(--r,540deg));opacity:.9}}
 @media (prefers-reduced-motion:reduce){.confeti{display:none}}
+
+/* agenda */
+.agwrap{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.agwrap{grid-template-columns:1fr}}
+.btn.sm{min-height:36px;padding:6px 12px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:10px}
+.cal .dw{font-size:12px;font-weight:600;color:var(--muted-fg);text-align:center;padding:4px 0}
+.cal .d{border:1px solid transparent;background:transparent;border-radius:10px;min-height:64px;padding:6px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;font:inherit;color:var(--fg);text-align:left;cursor:pointer;transition:background-color .15s}
+.cal .d:hover{background:var(--muted)}
+.cal .d.fuera{opacity:.35}
+.cal .d.hoy .n{background:var(--accent);color:var(--on-accent);border-radius:50%;width:24px;height:24px;display:grid;place-items:center}
+.cal .d.sel{border-color:var(--ring);background:color-mix(in srgb,var(--ring) 10%,transparent)}
+.cal .n{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;width:24px;height:24px;display:grid;place-items:center}
+.cal .dots{display:flex;flex-wrap:wrap;gap:3px}
+.cal .ev{font-size:11px;line-height:1.2;border-radius:5px;padding:2px 5px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.r,.lg-r{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent)}
+.ev.s,.lg-s{background:color-mix(in srgb,#ff9500 22%,transparent);color:#c26a00}
+.ev.v,.lg-v{background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger)}
+.lg{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:middle}
+.cal .mas{font-size:11px;color:var(--muted-fg)}
+@media (max-width:720px){.cal .d{min-height:48px;padding:4px}.cal .ev{display:none}.cal .pt{width:7px;height:7px;border-radius:50%}.cal .pt.r{background:var(--accent)}.cal .pt.s{background:#ff9500}.cal .pt.v{background:var(--danger)}}
+@media (min-width:721px){.cal .pt{display:none}}
+.row .hora{font-weight:700;font-variant-numeric:tabular-nums;min-width:48px;color:var(--fg)}
 </style>
 </head>
 <body>
@@ -405,6 +428,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     <button class="tab" role="tab" data-view="hoy" aria-selected="true"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg><span>Hoy</span></button>
     <button class="tab" role="tab" data-view="pipeline" aria-selected="false"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span>Etapas</span></button>
     <button class="tab" role="tab" data-view="lista" aria-selected="false"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.7.8 2.8 2.5 3 5.2"/></svg><span>Todos</span></button>
+    <button class="tab" role="tab" data-view="agenda" aria-selected="false"><svg class="ico tico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><circle cx="8" cy="14" r="1"/><circle cx="12" cy="14" r="1"/><circle cx="16" cy="14" r="1"/><circle cx="8" cy="17.5" r="1"/><circle cx="12" cy="17.5" r="1"/></svg><span>Agenda</span></button>
   </div>
   <label class="search"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Buscar empresa, contacto o correo" aria-label="Buscar"></label>
   <button class="btn primary" id="btnNuevo" type="button"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>Nuevo prospecto</button>
@@ -437,6 +461,22 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   <section id="v-pipeline" class="view" hidden>
     <div><h1>Etapas</h1><p class="sub">Arrastra una tarjeta a otra columna o ábrela y cambia su etapa.</p></div>
     <div class="board" id="board"></div>
+  </section>
+
+
+  <!-- AGENDA -->
+  <section id="v-agenda" class="view" hidden>
+    <div><h1>Agenda</h1><p class="sub">Reuniones y visitas <span class="lg lg-r"></span> · seguimientos <span class="lg lg-s"></span> · vencidos <span class="lg lg-v"></span></p></div>
+    <div class="agwrap">
+      <div class="panel">
+        <div class="panel-h"><button class="btn sm" type="button" id="agPrev" aria-label="Mes anterior">‹</button><h2 id="agMes"></h2><div style="display:flex;gap:6px"><button class="btn sm" type="button" id="agHoy">Hoy</button><button class="btn sm" type="button" id="agNext" aria-label="Mes siguiente">›</button></div></div>
+        <div class="cal" id="agCal"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h2 id="agDiaT"></h2></div>
+        <div id="agDia"></div>
+      </div>
+    </div>
   </section>
 
   <!-- LISTA -->
@@ -794,6 +834,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     if(primeraVez && data.length){ primeraVez=false; document.querySelectorAll('#kpis .kpi b').forEach(contar);
       document.querySelectorAll('.card,.row').forEach((el,i)=>el.style.setProperty('--i', Math.min(i%20,14)));
       document.body.classList.add('primera'); setTimeout(()=>document.body.classList.remove('primera'),1400); }
+    renderAgenda();
   }
 
   /* ---------- exportar a Excel (lo que se ve en la tabla) ---------- */
@@ -836,7 +877,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   $('#btnExcel').addEventListener('click', descargarExcel);
 
   /* ---------- navegación ---------- */
-  function setView(v){ view=v; document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected', t.dataset.view===v)); ['hoy','pipeline','lista'].forEach(x=>{ const el=$('#v-'+x); el.hidden = x!==v; if(x===v){ el.classList.remove('anim'); void el.offsetWidth; el.classList.add('anim'); } }); }
+  function setView(v){ view=v; document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected', t.dataset.view===v)); ['hoy','pipeline','lista','agenda'].forEach(x=>{ const el=$('#v-'+x); el.hidden = x!==v; if(x===v){ el.classList.remove('anim'); void el.offsetWidth; el.classList.add('anim'); } }); }
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setView(t.dataset.view)));
   $('#q').addEventListener('input', render);
   document.addEventListener('click', e => {
@@ -1017,6 +1058,43 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   $('#aDelNo').addEventListener('click', () => { $('#delConfirm').hidden=true; $('#aDel').hidden=false; });
   $('#aDelYes').addEventListener('click', async () => { const id=abierto.id; try{ await gs('borrar', id); data=data.filter(x=>x.id!==id); cerrar(); render(); toast('Registro eliminado'); }catch(e){ toast('No se pudo eliminar'); } });
   $('#cfgMail').addEventListener('change', async () => { try{ await gs('guardarConfig', $('#cfgMail').value.trim()); toast('Correo interno guardado'); }catch(e){ toast('No se pudo guardar el correo'); } });
+
+
+  /* ---------- agenda ---------- */
+  let agMes = new Date(); agMes.setDate(1); let agSel = null;
+  const isoD = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  function eventosAgenda(){
+    const hoy = hoyISO(), ev = {};
+    const add = (k, e) => (ev[k] = ev[k] || []).push(e);
+    data.filter(enCartera).forEach(r => {
+      if (r.reunion && /^\d{4}-\d{2}-\d{2}/.test(r.reunion)) { const [fh, tipo] = String(r.reunion).split(' · '); add(fh.slice(0,10), {c:'r', hora:fh.slice(11,16), tipo:tipo||'Reunión', r}); }
+      const cerrado = ['Ganado','Perdido','Archivado'].includes(r.estado) || r.etapa==='Sin ajuste';
+      if (r.proximo && !cerrado) { const k=String(r.proximo).slice(0,10); add(k, {c: k<hoy?'v':'s', hora:'', tipo: r.accion || 'Seguimiento', r}); }
+    });
+    Object.values(ev).forEach(l => l.sort((a,b)=>(a.c==='r'?0:1)-(b.c==='r'?0:1) || a.hora.localeCompare(b.hora)));
+    return ev;
+  }
+  function renderAgenda(){
+    if (!$('#agCal')) return;
+    const ev = eventosAgenda(), hoy = hoyISO(); if (!agSel) agSel = hoy;
+    { const t=agMes.toLocaleDateString('es-MX',{month:'long',year:'numeric'}).replace(' de ',' '); $('#agMes').textContent = t[0].toUpperCase()+t.slice(1); }
+    const ini = new Date(agMes); ini.setDate(1 - ((ini.getDay()+6)%7));
+    let h = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d=>`<div class="dw">${d}</div>`).join('');
+    for (let i=0;i<42;i++){ const d=new Date(ini); d.setDate(ini.getDate()+i); const k=isoD(d), l=ev[k]||[];
+      if (i===35 && d.getMonth()!==agMes.getMonth()) break;
+      h += `<button type="button" class="d${d.getMonth()!==agMes.getMonth()?' fuera':''}${k===hoy?' hoy':''}${k===agSel?' sel':''}" data-dia="${k}" aria-label="${k}${l.length?', '+l.length+' pendientes':''}"><span class="n">${d.getDate()}</span>`
+        + l.slice(0,2).map(e=>`<span class="ev ${e.c}">${e.hora?e.hora+' ':''}${esc(e.r.empresa||'')}</span>`).join('')
+        + (l.length>2?`<span class="mas">+${l.length-2} más</span>`:'')
+        + (l.length?`<span class="dots">${l.slice(0,4).map(e=>`<span class="pt ${e.c}"></span>`).join('')}</span>`:'') + '</button>'; }
+    $('#agCal').innerHTML = h;
+    const ds = new Date(agSel+'T12:00:00'), l = ev[agSel]||[];
+    $('#agDiaT').textContent = agSel===hoy ? 'Hoy' : (t=>t[0].toUpperCase()+t.slice(1))(ds.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'}));
+    $('#agDia').innerHTML = l.length ? l.map(e=>`<button type="button" class="row" data-id="${esc(e.r.id)}"><span class="hora">${e.hora||'—'}</span><span class="main"><span class="t">${esc(e.r.empresa||'')}</span><span class="m">${e.c==='r'?esc(e.tipo):(e.c==='v'?'Vencido · ':'Seguimiento · ')+esc(e.tipo)} · ${esc(e.r.nombre||'')}</span></span><span class="lg lg-${e.c}"></span></button>`).join('') : '<p class="empty">Nada para este día.</p>';
+  }
+  $('#agCal').addEventListener('click', e => { const d=e.target.closest('[data-dia]'); if(!d) return; agSel=d.dataset.dia; const f=new Date(agSel+'T12:00:00'); if(f.getMonth()!==agMes.getMonth()){ agMes=new Date(f.getFullYear(),f.getMonth(),1); } renderAgenda(); });
+  $('#agPrev').addEventListener('click', () => { agMes.setMonth(agMes.getMonth()-1); renderAgenda(); });
+  $('#agNext').addEventListener('click', () => { agMes.setMonth(agMes.getMonth()+1); renderAgenda(); });
+  $('#agHoy').addEventListener('click', () => { agMes=new Date(); agMes.setDate(1); agSel=hoyISO(); renderAgenda(); });
 
   /* ---------- nuevo prospecto ---------- */
   let ns = 1; const TIT = ['Datos generales','¿Qué busca resolver?','Datos de su planta','Siguiente reunión'];
