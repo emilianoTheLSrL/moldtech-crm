@@ -516,6 +516,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
         <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="rInv" type="checkbox" checked style="width:20px;height:20px;min-height:0">Invitar al prospecto</label>
       </div>
       <div class="field"><span style="font-size:12px;font-weight:600;color:var(--muted-fg)">Invitar al equipo</span><div class="team pills" id="rTeam"></div></div>
+      <div class="field"><label for="rOtro">Invitar a otra persona <span style="font-weight:400">(opcional)</span></label><input id="rOtro" type="email" multiple placeholder="correo@empresa.com, otro@empresa.com" autocomplete="off"></div>
       <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="rMeet" type="checkbox" checked style="width:20px;height:20px;min-height:0">Agregar link de Google Meet</label>
       <button class="btn" type="button" id="aAgendar"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg><span id="aAgendarTxt">Agendar y enviar invitación</span></button>
       <p class="note">Sin "Invitar al prospecto" queda solo como recordatorio en el calendario de jl.rangel (al cliente no le llega nada).</p>
@@ -977,8 +978,8 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     const r=abierto; ['nombre','empresa','puesto','tel','email','maquinas','tipoMaquinas','ubicacion','notas'].forEach(k => r[k]=$('#f_'+k).value.trim()); r.prioridad=$('#f_prioridad').value; r.mensaje=$('#dMsg').value;
     const b=$('#aSave'); b.disabled=true; try{ await guardar(r,'Datos actualizados'); toast('Cambios guardados'); } finally { b.disabled=false; }
   });
-  const agTxt = () => { const t=$('#aAgendarTxt'); if (t) t.textContent = $('#rInv').checked ? 'Agendar y enviar invitación' : 'Guardar en calendario'; };
-  $('#rInv').addEventListener('change', agTxt);
+  const agTxt = () => { const t=$('#aAgendarTxt'); if (t) t.textContent = ($('#rInv').checked || $('#rOtro').value.trim()) ? 'Agendar y enviar invitación' : 'Guardar en calendario'; };
+  $('#rInv').addEventListener('change', agTxt); $('#rOtro').addEventListener('input', agTxt);
   $('#aAgendar').addEventListener('click', async () => {
     const r=abierto, f=$('#rFecha').value, h=$('#rHora').value, t=$('#rTipo').value;
     if(!f||!h){ toast('Elige fecha y hora'); return; }
@@ -987,7 +988,11 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     if(inv && $('#f_email').value.trim() !== String(r.email || '').trim()){ toast('Guarda primero el correo del cliente en Datos.'); return; }
     const b=$('#aAgendar'); b.disabled=true; b.textContent='Agendando…';
     const team=[...document.querySelectorAll('#rTeam input:checked')].map(i=>i.value);
-    try{ const s = await gs('agendar', r.id, f, h, t, inv, team, meet); const i=data.findIndex(x=>x.id===s.id); data[i]=s; render(); llenarFicha(s); toast(inv ? 'Reunión agendada e invitación enviada' : 'Guardado en el calendario como recordatorio'); }
+    const otros=$('#rOtro').value.split(/[,;\s]+/).map(x=>x.trim()).filter(Boolean);
+    const malos=otros.filter(x=>!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x));
+    if(malos.length){ toast('Correo no válido: '+malos[0]); b.disabled=false; b.innerHTML='<svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg><span id="aAgendarTxt"></span>'; agTxt(); return; }
+    team.push(...otros);
+    try{ const s = await gs('agendar', r.id, f, h, t, inv, team, meet); const i=data.findIndex(x=>x.id===s.id); data[i]=s; render(); llenarFicha(s); $('#rOtro').value=''; toast((inv||otros.length) ? 'Reunión agendada e invitación enviada' : 'Guardado en el calendario como recordatorio'); }
     catch(e){ const detalle = 'No se pudo agendar: ' + (e && e.message ? e.message : 'revisa la conexión'); $('#dReunion').textContent = detalle; toast(detalle); }
     finally{ b.disabled=false; b.innerHTML='<svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg><span id="aAgendarTxt"></span>'; agTxt(); }
   });
