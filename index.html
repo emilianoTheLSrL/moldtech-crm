@@ -518,7 +518,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     <div class="sec">
       <h3>Agendar reunión</h3>
       <div class="grid2">
-        <div class="field"><label for="rTipo">Tipo</label><select id="rTipo"><option>Demo</option><option>Visita a planta</option><option>Llamada</option></select></div>
+        <div class="field"><label for="rTipo">Tipo</label><select id="rTipo"><option value="Demo en línea">Demo en línea (videollamada)</option><option value="Visita a planta">Visita a su planta</option><option value="Llamada">Llamada</option></select></div>
         <div class="field"><label for="rFecha">Fecha</label><input id="rFecha" type="date"></div>
         <div class="field"><label for="rHora">Hora</label><input id="rHora" type="time" value="10:00"></div>
         <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="rInv" type="checkbox" checked style="width:20px;height:20px;min-height:0">Invitar al prospecto</label>
@@ -622,8 +622,9 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       <div class="nstep" data-s="4" hidden>
         <div class="sec">
           <h3>Siguiente reunión</h3>
-          <div class="grid2">
-            <div class="field"><label for="n_rtipo">Tipo</label><select id="n_rtipo"><option>Demo</option><option>Visita a planta</option><option>Llamada</option></select></div>
+          <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="n_indef" type="checkbox" style="width:20px;height:20px;min-height:0">Indefinido (todavía no hay fecha)</label>
+          <div class="grid2" id="n_reuBox">
+            <div class="field"><label for="n_rtipo">Tipo</label><select id="n_rtipo"><option value="Demo en línea">Demo en línea (videollamada)</option><option value="Visita a planta">Visita a su planta</option><option value="Llamada">Llamada</option></select></div>
             <div class="field"><label for="n_rfecha">Fecha *</label><input id="n_rfecha" type="date"></div>
             <div class="field"><label for="n_rhora">Hora *</label><input id="n_rhora" type="time" value="10:00"></div>
             <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="n_rinv" type="checkbox" checked disabled style="width:20px;height:20px;min-height:0">Mandar invitación</label>
@@ -1020,8 +1021,9 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   /* ---------- nuevo prospecto ---------- */
   let ns = 1; const TIT = ['Datos generales','¿Qué busca resolver?','Datos de su planta','Siguiente reunión'];
   function setNs(n){ ns=n; document.querySelectorAll('.nstep').forEach(s=>s.hidden=+s.dataset.s!==n); document.querySelectorAll('.steps i').forEach((b,i)=>b.classList.toggle('on',i<n)); $('#mStep').textContent='Paso '+n+' de 4'; $('#mTitle').textContent=TIT[n-1]; $('#nBack').textContent=n===1?'Cancelar':'Atrás'; $('#nNext').textContent=n===4?'Guardar prospecto':'Siguiente'; $('#nMsg').textContent=''; }
-  function abrirModal(){ $('#nForm').reset(); setNs(1); $('#modal').hidden=false; $('#scrim').hidden=false; $('#n_nombre').focus(); }
+  function abrirModal(){ $('#nForm').reset(); $('#n_reuBox').hidden=false; setNs(1); $('#modal').hidden=false; $('#scrim').hidden=false; $('#n_nombre').focus(); }
   function cerrarModal(){ $('#modal').hidden=true; if($('#drawer').hidden) $('#scrim').hidden=true; }
+  $('#n_indef').addEventListener('change', e => { $('#n_reuBox').hidden = e.target.checked; $('#nMsg').textContent=''; });
   $('#btnNuevo').addEventListener('click', abrirModal); $('#mClose').addEventListener('click', cerrarModal);
   $('#nBack').addEventListener('click', () => ns===1 ? cerrarModal() : setNs(ns-1));
   $('#nForm').addEventListener('submit', e => e.preventDefault());
@@ -1030,20 +1032,21 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     if(ns===1){ if(!v('n_nombre')) return m.textContent='Falta el nombre.'; if(!v('n_empresa')) return m.textContent='Falta la empresa.'; if(!v('n_email')) return m.textContent='Falta el correo del cliente'; if(v('n_email')&&!/^\S+@\S+\.\S+$/.test(v('n_email'))) return m.textContent='El correo no parece válido.'; }
     if(ns<4) return setNs(ns+1);
     if(!v('n_email')) return m.textContent='Falta el correo del cliente';
-    if(!v('n_rfecha')||!v('n_rhora')) return m.textContent='Pon fecha y hora de la siguiente reunión.';
+    const indef=$('#n_indef').checked;
+    if(!indef && (!v('n_rfecha')||!v('n_rhora'))) return m.textContent='Pon fecha y hora, o marca "Indefinido".';
     const prob=[...document.querySelectorAll('#n_prob input:checked')].map(i=>i.value).concat(v('n_otro')?['Otro: '+v('n_otro')]:[]);
     const r = { id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), creado:new Date().toISOString(), etapa:'Urgente', prioridad:'Alta', estado:'Nuevo',
       nombre:v('n_nombre'), empresa:v('n_empresa'), puesto:v('n_puesto'), tel:v('n_tel'), email:v('n_email'), ubicacion:v('n_ubi'), maquinas:v('n_maq'), tipoMaquinas:v('n_tipo'), monitoreo:v('n_mon'),
-      problemas:prob, interes:v('n_interes'), consentimiento:$('#n_consent').checked?'Sí':'No', notas:v('n_notas'), origen:'App de registro', accion:'Confirmar '+v('n_rtipo').toLowerCase()+' agendada', mensaje:'', historial:[] };
-    const resumen = 'PROSPECTO — '+r.nombre+' ('+r.empresa+')\n\nPuesto: '+r.puesto+'\nCelular: '+r.tel+'\nCorreo: '+r.email+'\nProblemas: '+prob.join(', ')+'\nLe interesó: '+r.interes+'\nMáquinas: '+r.maquinas+' '+r.tipoMaquinas+'\nMonitoreo: '+r.monitoreo+'\nUbicación: '+r.ubicacion+'\nReunión: '+v('n_rtipo')+' '+v('n_rfecha')+' '+v('n_rhora')+'\nNotas: '+r.notas;
+      problemas:prob, interes:v('n_interes'), consentimiento:$('#n_consent').checked?'Sí':'No', notas:v('n_notas'), origen:'App de registro', accion: indef ? 'Definir fecha de la siguiente reunión' : 'Confirmar '+v('n_rtipo').toLowerCase()+' agendada', mensaje:'', historial:[] };
+    const resumen = 'PROSPECTO — '+r.nombre+' ('+r.empresa+')\n\nPuesto: '+r.puesto+'\nCelular: '+r.tel+'\nCorreo: '+r.email+'\nProblemas: '+prob.join(', ')+'\nLe interesó: '+r.interes+'\nMáquinas: '+r.maquinas+' '+r.tipoMaquinas+'\nMonitoreo: '+r.monitoreo+'\nUbicación: '+r.ubicacion+'\nReunión: '+(indef?'Indefinido':v('n_rtipo')+' '+v('n_rfecha')+' '+v('n_rhora'))+'\nNotas: '+r.notas;
     const b=$('#nNext'); b.disabled=true; b.textContent='Guardando…';
     try{
       const res = await gs('registrarNuevo', r, resumen); data.push(res.registro);
       let s = res.registro, errorAgenda = '';
-      try{ s = await gs('agendar', r.id, v('n_rfecha'), v('n_rhora'), v('n_rtipo'), true, [], true); }catch(e){ errorAgenda=String(e && e.message || e); }
+      if(!indef) try{ s = await gs('agendar', r.id, v('n_rfecha'), v('n_rhora'), v('n_rtipo'), true, [], true); }catch(e){ errorAgenda=String(e && e.message || e); }
       const i=data.findIndex(x=>x.id===s.id); data[i]=s; render(); cerrarModal();
       if(errorAgenda){ abrir(s.id); $('#dReunion').textContent = 'Prospecto guardado. No se confirmó la reunión: ' + errorAgenda; toast('No se confirmó la reunión. Revisa el detalle en la ficha.'); }
-      else toast('Prospecto guardado y reunión agendada');
+      else toast(indef ? 'Prospecto guardado (reunión por definir)' : 'Prospecto guardado y reunión agendada');
     }catch(e){ m.textContent='No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.'; }
     finally{ b.disabled=false; b.textContent='Guardar prospecto'; }
   });
