@@ -385,22 +385,26 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 .agwrap{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
 @media (max-width:900px){.agwrap{grid-template-columns:1fr}}
 .btn.sm{min-height:36px;padding:6px 12px}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:10px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;padding:10px}
 .cal .dw{font-size:12px;font-weight:600;color:var(--muted-fg);text-align:center;padding:4px 0}
-.cal .d{border:1px solid transparent;background:transparent;border-radius:10px;min-height:64px;padding:6px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;font:inherit;color:var(--fg);text-align:left;cursor:pointer;transition:background-color .15s}
+.cal .d{border:1px solid transparent;background:transparent;border-radius:10px;min-height:64px;padding:6px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;overflow:hidden;font:inherit;color:var(--fg);text-align:left;cursor:pointer;transition:background-color .15s}
 .cal .d:hover{background:var(--muted)}
 .cal .d.fuera{opacity:.35}
 .cal .d.hoy .n{background:var(--accent);color:var(--on-accent);border-radius:50%;width:24px;height:24px;display:grid;place-items:center}
 .cal .d.sel{border-color:var(--ring);background:color-mix(in srgb,var(--ring) 10%,transparent)}
 .cal .n{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;width:24px;height:24px;display:grid;place-items:center}
 .cal .dots{display:flex;flex-wrap:wrap;gap:3px}
-.cal .ev{font-size:11px;line-height:1.2;border-radius:5px;padding:2px 5px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ev.r,.lg-r{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent)}
+.cal .ev{font-size:11px;line-height:1.2;border-radius:5px;padding:2px 5px;width:100%;max-width:100%;box-sizing:border-box;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.r,.lg-r{background:color-mix(in srgb,#007aff 20%,transparent);color:#0a66d6}
+.ev.p,.lg-p{background:color-mix(in srgb,#8e44ec 20%,transparent);color:#7a35d6}
+:root[data-theme=dark] .ev.r,:root[data-theme=dark] .lg-r{color:#5aa9ff}:root[data-theme=dark] .ev.p,:root[data-theme=dark] .lg-p{color:#b98cff}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .ev.r{color:#5aa9ff}:root:not([data-theme=light]) .ev.p{color:#b98cff}:root:not([data-theme=light]) .ev.s{color:#ffb340}}
 .ev.s,.lg-s{background:color-mix(in srgb,#ff9500 22%,transparent);color:#c26a00}
 .ev.v,.lg-v{background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger)}
 .lg{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:middle}
+.lg.lg-r{background:#007aff}.lg.lg-p{background:#8e44ec}.lg.lg-s{background:#ff9500}.lg.lg-v{background:var(--danger)}
 .cal .mas{font-size:11px;color:var(--muted-fg)}
-@media (max-width:720px){.cal .d{min-height:48px;padding:4px}.cal .ev{display:none}.cal .pt{width:7px;height:7px;border-radius:50%}.cal .pt.r{background:var(--accent)}.cal .pt.s{background:#ff9500}.cal .pt.v{background:var(--danger)}}
+@media (max-width:720px){.cal .d{min-height:48px;padding:4px}.cal .ev{display:none}.cal .pt{width:7px;height:7px;border-radius:50%}.cal .pt.r{background:#007aff}.cal .pt.p{background:#8e44ec}.cal .pt.s{background:#ff9500}.cal .pt.v{background:var(--danger)}}
 @media (min-width:721px){.cal .pt{display:none}}
 .row .hora{font-weight:700;font-variant-numeric:tabular-nums;min-width:48px;color:var(--fg)}
 </style>
@@ -466,7 +470,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 
   <!-- AGENDA -->
   <section id="v-agenda" class="view" hidden>
-    <div><h1>Agenda</h1><p class="sub">Reuniones y visitas <span class="lg lg-r"></span> · seguimientos <span class="lg lg-s"></span> · vencidos <span class="lg lg-v"></span></p></div>
+    <div><h1>Agenda</h1><p class="sub">Demo / llamada <span class="lg lg-r"></span> · visita a planta <span class="lg lg-p"></span> · pendiente de hablar <span class="lg lg-s"></span> · vencido <span class="lg lg-v"></span></p></div>
     <div class="agwrap">
       <div class="panel">
         <div class="panel-h"><button class="btn sm" type="button" id="agPrev" aria-label="Mes anterior">‹</button><h2 id="agMes"></h2><div style="display:flex;gap:6px"><button class="btn sm" type="button" id="agHoy">Hoy</button><button class="btn sm" type="button" id="agNext" aria-label="Mes siguiente">›</button></div></div>
@@ -1067,11 +1071,11 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     const hoy = hoyISO(), ev = {};
     const add = (k, e) => (ev[k] = ev[k] || []).push(e);
     data.filter(enCartera).forEach(r => {
-      if (r.reunion && /^\d{4}-\d{2}-\d{2}/.test(r.reunion)) { const [fh, tipo] = String(r.reunion).split(' · '); add(fh.slice(0,10), {c:'r', hora:fh.slice(11,16), tipo:tipo||'Reunión', r}); }
+      if (r.reunion && /^\d{4}-\d{2}-\d{2}/.test(r.reunion)) { const [fh, tipo] = String(r.reunion).split(' · '); add(fh.slice(0,10), {c:/visita|planta/i.test(tipo||'')?'p':'r', hora:fh.slice(11,16), tipo:tipo||'Reunión', r}); }
       const cerrado = ['Ganado','Perdido','Archivado'].includes(r.estado) || r.etapa==='Sin ajuste';
       if (r.proximo && !cerrado) { const k=String(r.proximo).slice(0,10); add(k, {c: k<hoy?'v':'s', hora:'', tipo: r.accion || 'Seguimiento', r}); }
     });
-    Object.values(ev).forEach(l => l.sort((a,b)=>(a.c==='r'?0:1)-(b.c==='r'?0:1) || a.hora.localeCompare(b.hora)));
+    Object.values(ev).forEach(l => l.sort((a,b)=>(/[rp]/.test(a.c)?0:1)-(/[rp]/.test(b.c)?0:1) || a.hora.localeCompare(b.hora)));
     return ev;
   }
   function renderAgenda(){
@@ -1089,7 +1093,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#agCal').innerHTML = h;
     const ds = new Date(agSel+'T12:00:00'), l = ev[agSel]||[];
     $('#agDiaT').textContent = agSel===hoy ? 'Hoy' : (t=>t[0].toUpperCase()+t.slice(1))(ds.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'}));
-    $('#agDia').innerHTML = l.length ? l.map(e=>`<button type="button" class="row" data-id="${esc(e.r.id)}"><span class="hora">${e.hora||'—'}</span><span class="main"><span class="t">${esc(e.r.empresa||'')}</span><span class="m">${e.c==='r'?esc(e.tipo):(e.c==='v'?'Vencido · ':'Seguimiento · ')+esc(e.tipo)} · ${esc(e.r.nombre||'')}</span></span><span class="lg lg-${e.c}"></span></button>`).join('') : '<p class="empty">Nada para este día.</p>';
+    $('#agDia').innerHTML = l.length ? l.map(e=>`<button type="button" class="row" data-id="${esc(e.r.id)}"><span class="hora">${e.hora||'—'}</span><span class="main"><span class="t">${esc(e.r.empresa||'')}</span><span class="m">${/[rp]/.test(e.c)?esc(e.tipo):(e.c==='v'?'Vencido · ':'Seguimiento · ')+esc(e.tipo)} · ${esc(e.r.nombre||'')}</span></span><span class="lg lg-${e.c}"></span></button>`).join('') : '<p class="empty">Nada para este día.</p>';
   }
   $('#agCal').addEventListener('click', e => { const d=e.target.closest('[data-dia]'); if(!d) return; agSel=d.dataset.dia; const f=new Date(agSel+'T12:00:00'); if(f.getMonth()!==agMes.getMonth()){ agMes=new Date(f.getFullYear(),f.getMonth(),1); } renderAgenda(); });
   $('#agPrev').addEventListener('click', () => { agMes.setMonth(agMes.getMonth()-1); renderAgenda(); });
