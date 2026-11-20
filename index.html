@@ -372,6 +372,14 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 .avsel option{color:var(--fg)}
 .card[class*=cav]{border-left:4px solid var(--c,transparent)}.cav0{--c:var(--s-int)}.cav1{--c:var(--s-msg)}.cav2{--c:#8e44ec}.cav3{--c:var(--s-reu)}.cav4{--c:var(--primary)}.cav5{--c:var(--s-cli)}.cav6{--c:var(--muted-fg)}
 @media (prefers-color-scheme:dark){.chip.av2,.col-h.av2,.avsel.av2{color:#bf8bff}.cav2{--c:#bf8bff}}
+
+/* animaciones extra */
+@keyframes rise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+.primera .card,.primera .row{animation:rise .38s var(--ease-out) backwards;animation-delay:calc(var(--i,0) * 35ms)}
+.confeti{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
+.confeti i{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:caer var(--d,1.6s) cubic-bezier(.2,.6,.4,1) forwards}
+@keyframes caer{to{transform:translate(var(--x,0),105vh) rotate(var(--r,540deg));opacity:.9}}
+@media (prefers-reduced-motion:reduce){.confeti{display:none}}
 </style>
 </head>
 <body>
@@ -738,6 +746,14 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   const chipCart = c => c==='Dirección' ? '<span class="chip dir">Dirección</span>' : c==='Equipo' ? '<span class="chip eq">Equipo</span>' : c==='Alianzas' ? '<span class="chip alianzas">Alianzas</span>' : '';
   const ordenar = (a,b) => (PRIO[a.prioridad]??4)-(PRIO[b.prioridad]??4) || String(a.proximo||'9').localeCompare(String(b.proximo||'9')) || a.empresa.localeCompare(b.empresa);
 
+  let primeraVez = true;
+  function contar(el){ const n=+el.textContent; if(!n) return; const t0=performance.now(), dur=700; el.textContent='0';
+    const paso=t=>{ const k=Math.min(1,(t-t0)/dur); el.textContent=Math.round(n*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(paso); }; requestAnimationFrame(paso); }
+  function festejar(){ if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; const c=document.createElement('div'); c.className='confeti';
+    const col=['#ff9500','#007aff','#8e44ec','#30b0c7','#34c759','#ff2d55'];
+    for(let i=0;i<70;i++){ const e=document.createElement('i'); e.style.left=Math.random()*100+'vw'; e.style.background=col[i%col.length];
+      e.style.setProperty('--x',(Math.random()*160-80)+'px'); e.style.setProperty('--r',(Math.random()*900-450)+'deg'); e.style.setProperty('--d',(1.2+Math.random()*1.2)+'s'); e.style.animationDelay=Math.random()*.25+'s'; c.appendChild(e); }
+    document.body.appendChild(c); setTimeout(()=>c.remove(),2800); }
   function render(){
     const hoy = hoyISO();
     $('#carteraBar').innerHTML = CARTERAS.map(([v,l]) => `<button type="button" data-cart="${esc(v)}" aria-pressed="${v===cartera}">${esc(l)} · ${v==='todas'?data.length:data.filter(r=>(r.cartera||'')===v).length}</button>`).join('');
@@ -775,6 +791,9 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     const rows = data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Urgentes' ? esUrgente(r) : avance(r)===filtro))).sort(ordenar);
     $('#listaN').textContent = rows.length + ' de ' + data.length + ' registros';
     $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option><option ${r.cartera==='Alianzas'?'selected':''}>Alianzas</option></select></td><td>${chipAv(r)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
+    if(primeraVez && data.length){ primeraVez=false; document.querySelectorAll('#kpis .kpi b').forEach(contar);
+      document.querySelectorAll('.card,.row').forEach((el,i)=>el.style.setProperty('--i', Math.min(i%20,14)));
+      document.body.classList.add('primera'); setTimeout(()=>document.body.classList.remove('primera'),1400); }
   }
 
   /* ---------- exportar a Excel (lo que se ve en la tabla) ---------- */
@@ -836,7 +855,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   let dragId = null;
   $('#board').addEventListener('dragstart', e => { const c=e.target.closest('.card'); if(c){ dragId=c.dataset.id; e.dataTransfer.effectAllowed='move'; } });
   $('#board').addEventListener('dragover', e => { const col=e.target.closest('.col'); if(col&&dragId){ e.preventDefault(); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); col.classList.add('over'); } });
-  $('#board').addEventListener('drop', e => { const col=e.target.closest('.col'); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); if(!col||!dragId) return; e.preventDefault(); const r=data.find(x=>x.id===dragId); dragId=null; if(r && avance(r)!==col.dataset.etapa){ const old=avance(r); setAvance(r, col.dataset.etapa); render(); guardar(r, 'Etapa: '+old+' → '+avance(r)); } });
+  $('#board').addEventListener('drop', e => { const col=e.target.closest('.col'); document.querySelectorAll('.col.over').forEach(x=>x.classList.remove('over')); if(!col||!dragId) return; e.preventDefault(); const r=data.find(x=>x.id===dragId); dragId=null; if(r && avance(r)!==col.dataset.etapa){ const old=avance(r); setAvance(r, col.dataset.etapa); render(); if(avance(r)==='Cliente') festejar(); guardar(r, 'Etapa: '+old+' → '+avance(r)); } });
 
   /* ---------- ficha ---------- */
   const onlyDigits = t => String(t||'').replace(/\D/g,'');
@@ -848,7 +867,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#dSub').textContent = [r.nombre, r.puesto].filter(Boolean).join(' · ');
     $('#dChips').innerHTML = chipAv(r) + chipCons(r.consentimiento) + (r.origen?`<span class="chip">${esc(r.origen)}</span>`:'');
     $('#dAvance').innerHTML = AVANCES.map(e=>`<option value="${esc(e)}" ${e===avance(r)?'selected':''}>${esc(e)}</option>`).join('');
-    $('#dUrg').checked = esUrgente(r); $('#dAvance').className = 'avsel av' + AVANCES.indexOf(avance(r));
+    $('#dUrg').checked = esUrgente(r); $('#dAvance').className = 'avsel av' + AVANCES.indexOf(avance(r)); if(avance(r)==='Cliente') festejar();
     $('#dCartera').value = r.cartera || '';
     const cuentas = [...new Set(['jl.rangel@moldtech.mx', 'le.rosas@moldtech.mx', ...remitentes])];
     $('#dFrom').innerHTML = cuentas.map(m => {
