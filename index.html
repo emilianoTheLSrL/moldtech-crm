@@ -936,7 +936,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#dProx').value = r.proximo || ''; $('#dLog').value = '';
     $('#dReunion').textContent = r.reunion ? 'Reunión agendada: ' + r.reunion : '';
     $('#rFecha').value = '';
-    const FIJOS=[['JL','jl.rangel1090@gmail.com'],['Enrike','enriquerosas@torosqui.com.mx']];
+    const FIJOS=[['JL','jl.rangel1090@gmail.com'],['Enrike','enriquerosas@torosqui.com.mx'],['Emiliano','emilianomeneses13579@gmail.com']];
     const extra=equipo.filter(u=>u.email && !['jl.rangel@moldtech.mx',...FIJOS.map(f=>f[1])].includes(u.email.toLowerCase())).map(u=>[u.nombre,u.email]);
     $('#rTeam').innerHTML = FIJOS.concat(extra).map(([n,e])=>`<label class="pill" title="${esc(e)}"><input type="checkbox" value="${esc(e)}"><span>${esc(n)}</span></label>`).join('');
     $('#dHist').innerHTML = (r.historial||[]).slice().reverse().map(h=>`<div><span class="dot" style="color:var(--accent);margin-top:7px"></span><span>${esc(h.txt)}<small>${new Date(h.t).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} · ${esc(h.quien||'')}</small></span></div>`).join('') || '<p class="note">Sin movimientos todavía.</p>';
