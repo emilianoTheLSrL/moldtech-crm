@@ -1070,7 +1070,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   function eventosAgenda(){
     const hoy = hoyISO(), ev = {};
     const add = (k, e) => (ev[k] = ev[k] || []).push(e);
-    data.filter(enCartera).forEach(r => {
+    data.filter(match).forEach(r => {
       if (r.reunion && /^\d{4}-\d{2}-\d{2}/.test(r.reunion)) { const [fh, tipo] = String(r.reunion).split(' · '); add(fh.slice(0,10), {c:/visita|planta/i.test(tipo||'')?'p':'r', hora:fh.slice(11,16), tipo:tipo||'Reunión', r}); }
       const cerrado = ['Ganado','Perdido','Archivado'].includes(r.estado) || r.etapa==='Sin ajuste';
       if (r.proximo && !cerrado) { const k=String(r.proximo).slice(0,10); add(k, {c: k<hoy?'v':'s', hora:'', tipo: r.accion || 'Seguimiento', r}); }
@@ -1078,6 +1078,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     Object.values(ev).forEach(l => l.sort((a,b)=>(/[rp]/.test(a.c)?0:1)-(/[rp]/.test(b.c)?0:1) || a.hora.localeCompare(b.hora)));
     return ev;
   }
+  const fmtCorto = k => new Date(k+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'short'}).replace('.','');
   function renderAgenda(){
     if (!$('#agCal')) return;
     const ev = eventosAgenda(), hoy = hoyISO(); if (!agSel) agSel = hoy;
@@ -1091,9 +1092,16 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
         + (l.length>2?`<span class="mas">+${l.length-2} más</span>`:'')
         + (l.length?`<span class="dots">${l.slice(0,4).map(e=>`<span class="pt ${e.c}"></span>`).join('')}</span>`:'') + '</button>'; }
     $('#agCal').innerHTML = h;
+    const fila = (e, k) => `<button type="button" class="row" data-id="${esc(e.r.id)}"><span class="hora">${k?fmtCorto(k)+'<br>':''}${e.hora||'—'}</span><span class="main"><span class="t">${esc(e.r.empresa||'')}</span><span class="m">${/[rp]/.test(e.c)?esc(e.tipo):(e.c==='v'?'Vencido · ':'Seguimiento · ')+esc(e.tipo)} · ${esc(e.r.nombre||'')}</span></span><span class="lg lg-${e.c}"></span></button>`;
+    if (q()) {
+      const todos = Object.keys(ev).sort().flatMap(k => ev[k].map(e => [e,k]));
+      $('#agDiaT').textContent = 'Resultados: ' + todos.length;
+      $('#agDia').innerHTML = todos.length ? todos.map(([e,k]) => fila(e,k)).join('') : '<p class="empty">Ninguna reunión ni seguimiento con ese nombre.</p>';
+      return;
+    }
     const ds = new Date(agSel+'T12:00:00'), l = ev[agSel]||[];
     $('#agDiaT').textContent = agSel===hoy ? 'Hoy' : (t=>t[0].toUpperCase()+t.slice(1))(ds.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'}));
-    $('#agDia').innerHTML = l.length ? l.map(e=>`<button type="button" class="row" data-id="${esc(e.r.id)}"><span class="hora">${e.hora||'—'}</span><span class="main"><span class="t">${esc(e.r.empresa||'')}</span><span class="m">${/[rp]/.test(e.c)?esc(e.tipo):(e.c==='v'?'Vencido · ':'Seguimiento · ')+esc(e.tipo)} · ${esc(e.r.nombre||'')}</span></span><span class="lg lg-${e.c}"></span></button>`).join('') : '<p class="empty">Nada para este día.</p>';
+    $('#agDia').innerHTML = l.length ? l.map(e=>fila(e)).join('') : '<p class="empty">Nada para este día.</p>';
   }
   $('#agCal').addEventListener('click', e => { const d=e.target.closest('[data-dia]'); if(!d) return; agSel=d.dataset.dia; const f=new Date(agSel+'T12:00:00'); if(f.getMonth()!==agMes.getMonth()){ agMes=new Date(f.getFullYear(),f.getMonth(),1); } renderAgenda(); });
   $('#agPrev').addEventListener('click', () => { agMes.setMonth(agMes.getMonth()-1); renderAgenda(); });
