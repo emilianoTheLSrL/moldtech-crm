@@ -525,7 +525,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       <div class="warnbox" id="dConsent" hidden></div>
       <div class="field"><label for="dTpl">Plantilla</label><select id="dTpl"></select></div>
       <div class="field"><label for="dSubj">Asunto del correo</label><input id="dSubj" value="MoldTech · seguimiento Plastimagen 2026"></div>
-      <div class="field"><label for="dMsg">Mensaje</label><textarea id="dMsg"></textarea></div>
+      <div class="field"><label for="dMsg">Mensaje</label><textarea id="dMsg" spellcheck="true" lang="es"></textarea></div>
       <div class="grid2">
         <div class="field"><label for="dFrom">¿Quién mandará el correo?</label><select id="dFrom" aria-describedby="dFromHelp"></select><p class="note" id="dFromHelp" hidden>Para enviar como le.rosas, primero hay que activar y confirmar esa dirección en Gmail de jl.rangel, en «Enviar como».</p></div>
         <div class="field"><label for="dSig">Firma (imagen al final)</label><select id="dSig"></select></div>
@@ -928,6 +928,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#dMsg').value = r.mensaje || ('Hola' + (r.nombre && r.nombre!=='Por identificar' ? ', '+r.nombre.split(' ')[0] : '') + '. Te contacto del equipo MoldTech a raíz de Plastimagen 2026. ¿Podemos agendar 15 minutos para mostrarte cómo monitorear tu producción en tiempo real?');
     $('#dTpl').innerHTML = '<option value="">Mensaje guardado / escribir el mío</option>' + PLANTILLAS.map((t,i)=>`<option value="${i}">${esc(t.n)}</option>`).join('');
     $('#dSubj').value = 'MoldTech · seguimiento Plastimagen 2026';
+    if (!r.estado || r.estado==='Nuevo') { $('#dTpl').value='0'; $('#dSubj').value=llenarPlantilla(PLANTILLAS[0].a); $('#dMsg').value=llenarPlantilla(PLANTILLAS[0].t); }
     const c = $('#dConsent');
     if (r.consentimiento === 'No') { c.hidden=false; c.textContent = 'No aceptó comunicaciones comerciales en el evento. Manda solo un seguimiento puntual de lo que platicaron, sin promociones.'; } else c.hidden = true;
     ['nombre','empresa','puesto','tel','email','maquinas','tipoMaquinas','ubicacion','notas'].forEach(k => $('#f_'+k).value = r[k]||'');
@@ -1004,7 +1005,9 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     const r=abierto, b=$('#aSendYes'); b.disabled=true; b.textContent='Enviando…';
     try{
       if ($('#f_email').value.trim() !== (r.email||'')) { r.email=$('#f_email').value.trim(); await guardar(r,'Correo del prospecto actualizado'); }
-      const s = await gs('enviarCorreo', r.id, $('#dSubj').value.trim(), $('#dMsg').value, $('#dFrom').value, $('#dCc').checked, $('#dSig').value, !$('#dPdfWrap').hidden && $('#dPdf').checked);
+      const adj = !$('#dPdfWrap').hidden && $('#dPdf').checked; let cuerpo = $('#dMsg').value;
+      if (adj && !/presentaci[oó]n/i.test(cuerpo)) cuerpo = cuerpo.replace(/\s+$/,'') + '\n\nTe comparto nuestra presentación en PDF. Recuerda que tienes 30 días para probar MoldTech sin costo.';
+      const s = await gs('enviarCorreo', r.id, $('#dSubj').value.trim(), cuerpo, $('#dFrom').value, $('#dCc').checked, $('#dSig').value, !$('#dPdfWrap').hidden && $('#dPdf').checked);
       const i=data.findIndex(x=>x.id===s.id); if(i>=0) data[i]=s; render(); llenarFicha(s); toast('Correo enviado a '+s.email);
     }catch(e){ toast(String(e&&e.message||e).replace(/^Error:\s*/,'') || 'No se pudo enviar'); $('#sendConfirm').hidden=true; $('#aSend').hidden=false; }
     finally{ b.disabled=false; b.textContent='Sí, enviar'; }
@@ -1012,6 +1015,8 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   /* ---------- plantillas de mensaje ----------
      Variables: {nombre} (primer nombre), {empresa}, {yo} (quien envía). Para agregar una, suma un objeto a la lista. */
   const PLANTILLAS = [
+    { n: 'Primer contacto (formato MoldTech)', a: 'MoldTech · Monitoreo en tiempo real para {empresa}',
+      t: '¡Hola, {nombre}! Te escribo de MoldTech. Soy {yo} y nos dedicamos al monitoreo en tiempo real de equipos industriales.\n\nTe comparto nuestra presentación en PDF.\n\nOfrecemos el mejor precio del mercado y, además, 30 días para que lo pruebes sin costo. ¿Tendrás 15 minutos para que te muestre el producto?' },
     { n: 'Primer contacto (después de Plastimagen)', a: 'Gusto en saludarte · MoldTech · Plastimagen 2026',
       t: 'Hola {nombre},\n\nFue un gusto platicar contigo en Plastimagen 2026. Te escribo de parte del equipo de MoldTech para dar seguimiento a lo que vimos en el stand.\n\nAyudamos a plantas de inyección como {empresa} a ver en tiempo real lo que pasa en cada máquina: ciclos, paros, scrap y eficiencia (OEE), sin cambiar su forma de trabajar.\n\n¿Te parece si agendamos una llamada de 15 minutos esta semana o la próxima para mostrarte cómo se vería con tus máquinas?\n\nSaludos,\n{yo}' },
     { n: 'Seguimiento (no ha respondido)', a: 'Seguimiento · MoldTech',
@@ -1025,8 +1030,11 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   ];
   function llenarPlantilla(txt){
     const r = abierto || {}, nom = (r.nombre && r.nombre !== 'Por identificar') ? r.nombre.split(' ')[0] : '';
-    return txt.replace(/\{nombre\}/g, nom).replace(/\{empresa\}/g, r.empresa || 'tu planta').replace(/\{yo\}/g, usuario || 'Equipo MoldTech').replace(/Hola ,/g, 'Hola,');
+    const CORTOS = {emiliano:'Emiliano', joseluis:'José Luis', patrick:'Patrick', enrique:'Enrique'};
+    const yo = CORTOS[$('#dSig') && $('#dSig').value] || CORTOS[miClave] || usuario || 'el equipo de MoldTech';
+    return txt.replace(/\{nombre\}/g, nom).replace(/\{empresa\}/g, r.empresa || 'tu planta').replace(/\{yo\}/g, yo).replace(/Hola ,/g, 'Hola,').replace(/¡Hola, !/g, '¡Hola!');
   }
+  $('#dSig').addEventListener('change', () => { const i=$('#dTpl').value; if(i!==''){ const t=PLANTILLAS[+i]; $('#dMsg').value=llenarPlantilla(t.t); if(typeof updLinks==='function') updLinks(); } });
   $('#dTpl').addEventListener('change', () => {
     const i = $('#dTpl').value; if (i === '') { $('#dMsg').value = (abierto && abierto.mensaje) || $('#dMsg').value; return; }
     const t = PLANTILLAS[+i]; $('#dSubj').value = llenarPlantilla(t.a); $('#dMsg').value = llenarPlantilla(t.t); updLinks();
