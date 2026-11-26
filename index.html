@@ -407,6 +407,13 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 @media (max-width:720px){.cal .d{min-height:48px;padding:4px}.cal .ev{display:none}.cal .pt{width:7px;height:7px;border-radius:50%}.cal .pt.r{background:#007aff}.cal .pt.p{background:#8e44ec}.cal .pt.s{background:#ff9500}.cal .pt.v{background:var(--danger)}}
 @media (min-width:721px){.cal .pt{display:none}}
 .row .hora{font-weight:700;font-variant-numeric:tabular-nums;min-width:48px;color:var(--fg)}
+
+/* pestañas de la ficha */
+.d-head{flex-wrap:wrap}
+.dtabs{flex-basis:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--muted);border-radius:10px;padding:3px;margin-top:12px}
+.dtabs button{border:0;background:transparent;border-radius:8px;padding:8px 4px;font:inherit;font-size:14px;font-weight:600;color:var(--muted-fg);min-height:36px;cursor:pointer;transition:background-color .18s,color .18s}
+.dtabs button[aria-selected="true"]{background:var(--card);color:var(--fg);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.d-body .sec[data-pane]{animation:fadeUp .2s var(--ease-out)}
 </style>
 </head>
 <body>
@@ -509,9 +516,10 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px" id="dChips"></div>
     </div>
     <button class="btn ghost" type="button" id="dClose" aria-label="Cerrar ficha"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button>
+    <div class="dtabs" role="tablist" id="dTabs"><button type="button" data-pane="resumen" aria-selected="true">Resumen</button><button type="button" data-pane="mensaje" aria-selected="false">Mensaje</button><button type="button" data-pane="reunion" aria-selected="false">Reunión</button><button type="button" data-pane="datos" aria-selected="false">Datos</button></div>
   </div>
   <div class="d-body">
-    <div class="sec">
+    <div data-pane="resumen" class="sec">
       <div class="grid2">
         <div class="field"><label for="dAvance">Etapa</label><select id="dAvance"></select></div>
         <div class="field"><label for="dCartera">¿Quién lo atiende?</label><select id="dCartera"><option value="">Sin asignar</option><option value="Dirección">Dirección</option><option value="Equipo">Equipo</option><option value="Alianzas">Alianzas</option></select></div>
@@ -520,7 +528,21 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       <p class="note" id="dAccion"></p>
     </div>
 
-    <div class="sec">
+    <div data-pane="resumen" class="sec">
+      <h3>Registrar contacto</h3>
+      <div class="field"><label for="dLog">¿Qué pasó?</label><textarea id="dLog" placeholder="Ej. Le mandé WhatsApp, quedó de revisar con su gerente"></textarea></div>
+      <div class="grid2">
+        <div class="field"><label for="dProx">Siguiente seguimiento</label><input id="dProx" type="date"></div>
+        <div class="field" style="justify-content:flex-end"><button class="btn primary" type="button" id="aLog"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Guardar contacto</button></div>
+      </div>
+    </div>
+
+    <div data-pane="resumen" class="sec">
+      <h3>Lo que se ha hecho</h3>
+      <div class="hist" id="dHist"></div>
+    </div>
+
+    <div data-pane="mensaje" class="sec">
       <h3>Mensaje de seguimiento</h3>
       <div class="warnbox" id="dConsent" hidden></div>
       <div class="field"><label for="dTpl">Plantilla</label><select id="dTpl"></select></div>
@@ -550,16 +572,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       <p class="note">El correo se envía solo, desde la cuenta elegida, y queda en el historial. Las respuestas del prospecto te llegan a tu correo de "Mi cuenta". WhatsApp sí lo tienes que mandar tú.</p>
     </div>
 
-    <div class="sec">
-      <h3>Registrar contacto</h3>
-      <div class="field"><label for="dLog">¿Qué pasó?</label><textarea id="dLog" placeholder="Ej. Le mandé WhatsApp, quedó de revisar con su gerente"></textarea></div>
-      <div class="grid2">
-        <div class="field"><label for="dProx">Siguiente seguimiento</label><input id="dProx" type="date"></div>
-        <div class="field" style="justify-content:flex-end"><button class="btn primary" type="button" id="aLog"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg>Guardar contacto</button></div>
-      </div>
-    </div>
-
-    <div class="sec">
+    <div data-pane="reunion" class="sec">
       <h3>Agendar reunión</h3>
       <div class="grid2">
         <div class="field"><label for="rTipo">Tipo</label><select id="rTipo"><option value="Demo en línea">Demo en línea (videollamada)</option><option value="Visita a planta">Visita a su planta</option><option value="Llamada">Llamada</option></select></div>
@@ -574,7 +587,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       <p class="note" id="dReunion"></p>
     </div>
 
-    <div class="sec">
+    <div data-pane="datos" class="sec">
       <h3>Datos</h3>
       <div class="grid2">
         <div class="field"><label for="f_nombre">Nombre</label><input id="f_nombre"></div>
@@ -595,12 +608,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       </div>
     </div>
 
-    <div class="sec">
-      <h3>Historial</h3>
-      <div class="hist" id="dHist"></div>
-    </div>
-
-    <div class="sec" id="delSec">
+    <div data-pane="datos" class="sec" id="delSec">
       <button class="btn danger" type="button" id="aDel">Eliminar registro</button>
       <div id="delConfirm" hidden>
         <p class="note">¿Eliminar este prospecto? No se puede deshacer.</p>
@@ -609,8 +617,6 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     </div>
   </div>
   <div class="drawer-footer">
-    <a class="btn ghost" href="#dMsg">Mensaje</a>
-    <a class="btn ghost" href="#f_nombre">Datos</a>
     <button class="btn primary" type="button" id="aSave">Guardar cambios</button>
   </div>
 </aside>
@@ -959,7 +965,11 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   $('#dMsg').addEventListener('input', crecerMsg);
   document.addEventListener('click', e => { if (e.target.closest('[data-id]') || e.target.closest('#dTpl')) setTimeout(crecerMsg, 60); });
   document.addEventListener('change', e => { if (e.target.id==='dTpl') setTimeout(crecerMsg, 30); });
-  function abrir(id){ const r=data.find(x=>x.id===id); if(!r) return; llenarFicha(r); $('#scrim').hidden=false; $('#drawer').hidden=false; $('#dClose').focus(); }
+  function abrir(id){ const r=data.find(x=>x.id===id); if(!r) return; llenarFicha(r); dPane('resumen'); $('#scrim').hidden=false; $('#drawer').hidden=false; $('#dClose').focus(); }
+
+  /* ---------- pestañas de la ficha ---------- */
+  function dPane(p){ document.querySelectorAll('#dTabs button').forEach(b=>b.setAttribute('aria-selected', b.dataset.pane===p)); document.querySelectorAll('.d-body .sec[data-pane]').forEach(x=>x.hidden = x.dataset.pane!==p); const db=document.querySelector('.d-body'); if(db) db.scrollTop=0; if(p==='mensaje') setTimeout(()=>typeof crecerMsg==='function'&&crecerMsg(),30); }
+  $('#dTabs').addEventListener('click', e => { const b=e.target.closest('[data-pane]'); if(b) dPane(b.dataset.pane); });
   function cerrar(){ $('#scrim').hidden=true; $('#drawer').hidden=true; abierto=null; }
   $('#dClose').addEventListener('click', cerrar); $('#scrim').addEventListener('click', () => { if(!$('#acct').hidden){ $('#acct').hidden=true; if($('#drawer').hidden) $('#scrim').hidden=true; } else if(!$('#modal').hidden) cerrarModal(); else cerrar(); });
   document.addEventListener('keydown', e => { if(e.key==='Escape'){ if(!$('#modal').hidden) cerrarModal(); else if(!$('#drawer').hidden) cerrar(); } });
@@ -971,7 +981,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     const p = waPend(); if (!p || document.hidden) return;
     if (Date.now() - p.t > 12*3600*1000) { store.set('mt_wa_pend', null); return; }
     if (!abierto || abierto.id !== p.id) { store.set('mt_wa_pend', null); return; } // ya estás en otro prospecto: no te regresa
-    waMostrar();
+    dPane('mensaje'); waMostrar();
   }
   $('#aWa').addEventListener('click', () => { if (!abierto || !$('#aWa').getAttribute('href')) return; store.set('mt_wa_pend', JSON.stringify({ id: abierto.id, t: Date.now() })); setTimeout(waMostrar, 300); });
   document.addEventListener('visibilitychange', waRevisar);
@@ -1143,7 +1153,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       let s = res.registro, errorAgenda = '';
       if(!indef) try{ s = await gs('agendar', r.id, v('n_rfecha'), v('n_rhora'), v('n_rtipo'), true, [], true); }catch(e){ errorAgenda=String(e && e.message || e); }
       const i=data.findIndex(x=>x.id===s.id); data[i]=s; render(); cerrarModal();
-      if(errorAgenda){ abrir(s.id); $('#dReunion').textContent = 'Prospecto guardado. No se confirmó la reunión: ' + errorAgenda; toast('No se confirmó la reunión. Revisa el detalle en la ficha.'); }
+      if(errorAgenda){ abrir(s.id); dPane('reunion'); $('#dReunion').textContent = 'Prospecto guardado. No se confirmó la reunión: ' + errorAgenda; toast('No se confirmó la reunión. Revisa el detalle en la ficha.'); }
       else toast(indef ? 'Prospecto guardado (reunión por definir)' : 'Prospecto guardado y reunión agendada');
     }catch(e){ m.textContent='No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.'; }
     finally{ b.disabled=false; b.textContent='Guardar prospecto'; }
