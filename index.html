@@ -414,6 +414,29 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 .dtabs button{border:0;background:transparent;border-radius:8px;padding:8px 4px;font:inherit;font-size:14px;font-weight:600;color:var(--muted-fg);min-height:36px;cursor:pointer;transition:background-color .18s,color .18s}
 .dtabs button[aria-selected="true"]{background:var(--card);color:var(--fg);box-shadow:0 1px 4px rgba(0,0,0,.12)}
 .d-body .sec[data-pane]{animation:fadeUp .2s var(--ease-out)}
+
+/* próximas reuniones */
+#listaReu{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;padding:14px}
+.reu{--c:#007aff;position:relative;display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:color-mix(in srgb,var(--c) 7%,var(--card));border:1px solid color-mix(in srgb,var(--c) 22%,transparent);cursor:pointer;transition:transform .16s var(--ease-out),box-shadow .2s,border-color .2s;min-width:0}
+.reu:hover{transform:translateY(-2px);box-shadow:0 8px 24px color-mix(in srgb,var(--c) 18%,transparent);border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+.reu.reu-p{--c:#8e44ec}
+.reu-fecha{flex:none;width:56px;height:60px;border-radius:12px;background:var(--c);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.reu-fecha b{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.reu-fecha span{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-top:3px;opacity:.9}
+.reu-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.reu-t{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reu-m{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--muted-fg)}
+.reu-cuando{font-weight:600;color:var(--fg)}
+.reu-tipo{white-space:nowrap;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);font-weight:600;font-size:12px}
+.reu-con{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.reu-dir{font-size:12px;color:var(--muted-fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reu-btn{flex:none;align-self:center;text-decoration:none;font-size:13px;font-weight:600;padding:8px 12px;border-radius:10px;background:var(--c);color:#fff;white-space:nowrap}
+.reu-btn:hover{filter:brightness(1.1)}
+.reu.pronto .reu-fecha{box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 30%,transparent);animation:pulso 2.4s ease-in-out infinite}
+@keyframes pulso{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 12%,transparent)}}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .reu-tipo{color:color-mix(in srgb,var(--c) 60%,#fff)}}
+:root[data-theme=dark] .reu-tipo{color:color-mix(in srgb,var(--c) 60%,#fff)}
+@media (max-width:720px){#listaReu{grid-template-columns:1fr;padding:10px}.reu{flex-wrap:wrap}.reu-main{flex:1 1 0}.reu-btn{flex:1 0 100%;max-width:calc(100% - 70px);margin-left:70px;text-align:center;box-sizing:border-box}}
 </style>
 </head>
 <body>
@@ -826,7 +849,19 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       const when = r.proximo ? (late ? 'Vencido · ' + fmtD(r.proximo) : 'Hoy') : 'Contactar';
       return `<button type="button" class="row" data-id="${esc(r.id)}">${chipAv(r)}<span class="main"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)} · ${esc(r.accion || 'Dar seguimiento')}</span></span>${chipCart(r.cartera)}<span class="when ${late?'late':''}">${when}</span></button>`;
     }).join('') : '<p class="empty">No hay seguimientos pendientes para hoy. Revisa el pipeline para elegir a quién contactar.</p>';
-    $('#listaReu').innerHTML = reus.length ? reus.map(r => `<button type="button" class="row" data-id="${esc(r.id)}"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg><span class="main"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.reunion)}</span></span></button>`).join('') : '<p class="empty">Aún no hay reuniones agendadas. Agenda una desde la ficha de un prospecto.</p>';
+    $('#listaReu').innerHTML = reus.length ? reus.map(r => {
+      const [fh, tipo='Reunión', ...resto] = String(r.reunion).split(' · '); const extra = resto.join(' · ').trim();
+      const f = fh.slice(0,10), h = fh.slice(11,16), d = new Date(f+'T12:00:00');
+      const dias = Math.round((d - new Date(hoy+'T12:00:00'))/864e5);
+      const cuando = dias===0 ? 'Hoy' : dias===1 ? 'Mañana' : dias<7 ? d.toLocaleDateString('es-MX',{weekday:'long'}) : 'En ' + dias + ' días';
+      const visita = /visita|planta/i.test(tipo), meet = /^https?:\/\/meet\./.test(extra);
+      const acc = meet ? `<a class="reu-btn" href="${esc(extra)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Unirse a Meet</a>`
+        : (extra && visita) ? `<a class="reu-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(extra)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Cómo llegar</a>` : '';
+      return `<div class="reu ${visita?'reu-p':'reu-r'}${dias<=1?' pronto':''}" role="button" tabindex="0" data-id="${esc(r.id)}">
+        <div class="reu-fecha"><b>${d.getDate()}</b><span>${d.toLocaleDateString('es-MX',{month:'short'}).replace('.','')}</span></div>
+        <div class="reu-main"><span class="reu-t">${esc(r.empresa)}</span>
+          <span class="reu-m"><span class="reu-cuando">${esc(cuando[0].toUpperCase()+cuando.slice(1))} · ${esc(h)}</span><span class="reu-tipo">${esc(tipo)}</span>${r.nombre?`<span class="reu-con">${esc(r.nombre)}</span>`:''}</span>
+          ${extra && !meet ? `<span class="reu-dir">${esc(extra)}</span>` : ''}</div>${acc}</div>`; }).join('') : '<p class="empty">Aún no hay reuniones agendadas. Agenda una desde la ficha de un prospecto.</p>';
 
     // pipeline
     $('#board').innerHTML = AVANCES.map((e,i) => {
