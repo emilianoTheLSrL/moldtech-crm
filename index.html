@@ -417,7 +417,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 
 /* próximas reuniones */
 #listaReu{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;padding:14px}
-.reu{--c:#007aff;position:relative;display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:color-mix(in srgb,var(--c) 7%,var(--card));border:1px solid color-mix(in srgb,var(--c) 22%,transparent);cursor:pointer;transition:transform .16s var(--ease-out),box-shadow .2s,border-color .2s;min-width:0}
+.reu{--c:#007aff;position:relative;display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:color-mix(in srgb,var(--c) 4%,var(--card));border:1px solid color-mix(in srgb,var(--c) 15%,var(--border));cursor:pointer;transition:transform .16s var(--ease-out),box-shadow .2s,border-color .2s;min-width:0}
 .reu:hover{transform:translateY(-2px);box-shadow:0 8px 24px color-mix(in srgb,var(--c) 18%,transparent);border-color:color-mix(in srgb,var(--c) 45%,transparent)}
 .reu.reu-p{--c:#8e44ec}
 .reu-fecha{flex:none;width:56px;height:60px;border-radius:12px;background:var(--c);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
@@ -440,27 +440,35 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 
 /* tarjetas estilo reuniones */
 #listaHoy,#agDia{display:flex;flex-direction:column;gap:10px;padding:14px}
-.pcard{--c:var(--primary);display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--c) 6%,var(--card));border:1px solid color-mix(in srgb,var(--c) 20%,transparent);cursor:pointer;min-width:0;transition:transform .16s var(--ease-out),box-shadow .2s,border-color .2s}
+.pcard{--c:var(--primary);display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--c) 3%,var(--card));border:1px solid color-mix(in srgb,var(--c) 13%,var(--border));cursor:pointer;min-width:0;transition:transform .16s var(--ease-out),box-shadow .2s,border-color .2s}
 .pcard:hover{transform:translateY(-2px);box-shadow:0 8px 24px color-mix(in srgb,var(--c) 16%,transparent);border-color:color-mix(in srgb,var(--c) 45%,transparent)}
 .pcard .reu-tipo,.reu .reu-tipo{--c2:var(--c)}
 .pc-ini{flex:none;width:48px;height:48px;border-radius:12px;background:var(--c);color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px;letter-spacing:.02em}
 .pc-hora{width:58px;font-size:15px;font-variant-numeric:tabular-nums;line-height:1.1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .pc-hora small{font-size:10px;font-weight:600;text-transform:uppercase;opacity:.9}
 .pc-urg{white-space:nowrap;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--danger) 16%,transparent);color:var(--danger);font-weight:600;font-size:12px}
-.pc-when{flex:none;font-size:13px;font-weight:600;padding:6px 10px;border-radius:10px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--fg);white-space:nowrap}
+.pc-when{flex:none;font-size:13px;font-weight:600;padding:6px 10px;border-radius:10px;background:var(--muted);color:var(--fg);white-space:nowrap}
 .pcard.late .pc-when{background:var(--danger);color:#fff}
 .pcard .chip{font-size:12px}
 @media (max-width:720px){#listaHoy,#agDia{padding:10px}.pcard{flex-wrap:wrap}.pcard .reu-main{flex:1 1 0}.pc-when{flex:1 0 100%;max-width:calc(100% - 62px);margin-left:62px;text-align:center;box-sizing:border-box}}
 /* KPIs con color */
 .kpi{position:relative;overflow:hidden}
 .kpi0{--c:#ff9500}.kpi1{--c:var(--danger)}.kpi2{--c:#8e44ec}.kpi3{--c:#007aff}
-.kpi[class*=kpi]{background:linear-gradient(145deg,color-mix(in srgb,var(--c) 14%,var(--card)),var(--card) 70%);border-color:color-mix(in srgb,var(--c) 22%,transparent)}
+.kpi[class*=kpi]{background:linear-gradient(145deg,color-mix(in srgb,var(--c) 7%,var(--card)),var(--card) 60%);border-color:color-mix(in srgb,var(--c) 12%,var(--border))}
 .kpi-ico{position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:11px;background:var(--c);display:grid;place-items:center}
 .kpi-ico svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .kpi:hover{box-shadow:0 8px 24px color-mix(in srgb,var(--c) 18%,transparent)}
 /* tarjetas del tablero */
 .card{transition:transform .16s var(--ease-out),box-shadow .2s}
 .card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
+
+/* iniciales en todas partes */
+.ct{display:inline-flex;align-items:center;gap:10px;min-width:0}
+.ct-n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini-ini{flex:none;width:28px;height:28px;border-radius:8px;background:var(--c,var(--primary));color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700;letter-spacing:.02em}
+.ct-lg .mini-ini{width:40px;height:40px;border-radius:11px;font-size:15px}
+.ct-lg{gap:12px}
+.card .ct{display:flex}
 </style>
 </head>
 <body>
@@ -558,7 +566,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle" hidden>
   <div class="d-head">
     <div class="main">
-      <h2 id="dTitle"></h2>
+      <div class="ct ct-lg"><span class="mini-ini" id="dIni"></span><h2 id="dTitle"></h2></div>
       <p class="sub" id="dSub"></p>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px" id="dChips"></div>
     </div>
@@ -843,6 +851,9 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   const chipCart = c => c==='Dirección' ? '<span class="chip dir">Dirección</span>' : c==='Equipo' ? '<span class="chip eq">Equipo</span>' : c==='Alianzas' ? '<span class="chip alianzas">Alianzas</span>' : '';
   const ordenar = (a,b) => (PRIO[a.prioridad]??4)-(PRIO[b.prioridad]??4) || String(a.proximo||'9').localeCompare(String(b.proximo||'9')) || a.empresa.localeCompare(b.empresa);
 
+  const AVC = ['var(--s-int)','var(--s-msg)','#8e44ec','var(--s-reu)','var(--primary)','var(--s-cli)','var(--muted-fg)'];
+  const inic = t => String(t||'?').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g,'').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?';
+  const avColor = r => AVC[AVANCES.indexOf(avance(r))] || 'var(--primary)';
   let primeraVez = true;
   function contar(el){ const n=+el.textContent; if(!n) return; const t0=performance.now(), dur=700; el.textContent='0';
     const paso=t=>{ const k=Math.min(1,(t-t0)/dur); el.textContent=Math.round(n*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(paso); }; requestAnimationFrame(paso); }
@@ -869,8 +880,6 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     ].map(([l,n,v],i) => `<button type="button" class="kpi kpi${i}" data-go="${v}"><span class="kpi-ico"><svg viewBox="0 0 24 24" aria-hidden="true">${KICO[i]}</svg></span><b>${n}</b><span>${l}</span></button>`).join('');
     const lst = pendientes.filter(match).sort(ordenar);
     $('#hoyN').textContent = lst.length ? lst.length + ' prospectos' : '';
-    const AVC = ['var(--s-int)','var(--s-msg)','#8e44ec','var(--s-reu)','var(--primary)','var(--s-cli)','var(--muted-fg)'];
-    const inic = t => String(t||'?').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g,'').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?';
     $('#listaHoy').innerHTML = lst.length ? lst.map(r => {
       const late = r.proximo && r.proximo < hoy, ai = AVANCES.indexOf(avance(r));
       const when = r.proximo ? (late ? 'Vencido · ' + fmtD(r.proximo) : 'Hoy') : 'Contactar';
@@ -899,7 +908,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#board').innerHTML = AVANCES.map((e,i) => {
       const items = data.filter(r => avance(r)===e && match(r)).sort(ordenar);
       return `<section class="col" data-etapa="${esc(e)}"><div class="col-h av${i}"><span class="dot"></span><span style="color:var(--fg)">${esc(e)}</span><span class="n">${items.length}</span></div>` +
-        items.map(r => `<button type="button" class="card cav${i}" draggable="true" data-id="${esc(r.id)}"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)}${r.puesto? ' · '+esc(r.puesto):''}</span><span class="a">${esc(r.accion||'')}</span><span class="foot">${chipCart(r.cartera)}${esUrgente(r)?'<span class="chip st-Urgente">Urgente</span>':''}${r.proximo?`<span class="chip">${fmtD(r.proximo)}</span>`:''}${r.maquinas?`<span class="chip">${esc(r.maquinas)} máq.</span>`:''}</span></button>`).join('') + '</section>';
+        items.map(r => `<button type="button" class="card cav${i}" draggable="true" data-id="${esc(r.id)}" style="--c:${AVC[i]}"><span class="t ct"><span class="mini-ini">${esc(inic(r.empresa))}</span><span class="ct-n">${esc(r.empresa)}</span></span><span class="m">${esc(r.nombre)}${r.puesto? ' · '+esc(r.puesto):''}</span><span class="a">${esc(r.accion||'')}</span><span class="foot">${chipCart(r.cartera)}${esUrgente(r)?'<span class="chip st-Urgente">Urgente</span>':''}${r.proximo?`<span class="chip">${fmtD(r.proximo)}</span>`:''}${r.maquinas?`<span class="chip">${esc(r.maquinas)} máq.</span>`:''}</span></button>`).join('') + '</section>';
     }).join('');
 
     // lista
@@ -907,7 +916,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#filters').innerHTML = fl.map(f => `<button type="button" class="fchip" data-f="${esc(f)}" aria-pressed="${f===filtro}">${esc(ETAPA_LBL[f]||f)} · ${f==='Todos'?data.filter(enCartera).length:f==='Aceptan mensajes'?data.filter(r=>enCartera(r)&&r.consentimiento==='Sí').length:f==='Urgentes'?data.filter(r=>enCartera(r)&&esUrgente(r)).length:data.filter(r=>enCartera(r)&&avance(r)===f).length}</button>`).join('');
     const rows = data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Urgentes' ? esUrgente(r) : avance(r)===filtro))).sort(ordenar);
     $('#listaN').textContent = rows.length + ' de ' + data.length + ' registros';
-    $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option><option ${r.cartera==='Alianzas'?'selected':''}>Alianzas</option></select></td><td>${chipAv(r)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
+    $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><span class="ct" style="--c:${avColor(r)}"><span class="mini-ini">${esc(inic(r.empresa))}</span><b>${esc(r.empresa)}</b></span></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option><option ${r.cartera==='Alianzas'?'selected':''}>Alianzas</option></select></td><td>${chipAv(r)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
     if(primeraVez && data.length){ primeraVez=false; document.querySelectorAll('#kpis .kpi b').forEach(contar);
       document.querySelectorAll('.card,.row,.pcard,.reu').forEach((el,i)=>el.style.setProperty('--i', Math.min(i%20,14)));
       document.body.classList.add('primera'); setTimeout(()=>document.body.classList.remove('primera'),1400); }
@@ -981,7 +990,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   function llenarFicha(r){
     abierto = r;
     waMostrar();
-    $('#dTitle').textContent = r.empresa || 'Sin empresa';
+    $('#dTitle').textContent = r.empresa || 'Sin empresa'; $('#dIni').textContent = inic(r.empresa); $('#dIni').parentElement.style.setProperty('--c', avColor(r));
     $('#dSub').textContent = [r.nombre, r.puesto].filter(Boolean).join(' · ');
     $('#dChips').innerHTML = chipAv(r) + chipCons(r.consentimiento) + (r.origen?`<span class="chip">${esc(r.origen)}</span>`:'');
     $('#dAvance').innerHTML = AVANCES.map(e=>`<option value="${esc(e)}" ${e===avance(r)?'selected':''}>${esc(e)}</option>`).join('');
