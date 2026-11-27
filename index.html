@@ -375,7 +375,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 
 /* animaciones extra */
 @keyframes rise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
-.primera .card,.primera .row{animation:rise .38s var(--ease-out) backwards;animation-delay:calc(var(--i,0) * 35ms)}
+.primera .card,.primera .row,.primera .pcard,.primera .reu{animation:rise .38s var(--ease-out) backwards;animation-delay:calc(var(--i,0) * 35ms)}
 .confeti{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
 .confeti i{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:caer var(--d,1.6s) cubic-bezier(.2,.6,.4,1) forwards}
 @keyframes caer{to{transform:translate(var(--x,0),105vh) rotate(var(--r,540deg));opacity:.9}}
@@ -437,6 +437,30 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .reu-tipo{color:color-mix(in srgb,var(--c) 60%,#fff)}}
 :root[data-theme=dark] .reu-tipo{color:color-mix(in srgb,var(--c) 60%,#fff)}
 @media (max-width:720px){#listaReu{grid-template-columns:1fr;padding:10px}.reu{flex-wrap:wrap}.reu-main{flex:1 1 0}.reu-btn{flex:1 0 100%;max-width:calc(100% - 70px);margin-left:70px;text-align:center;box-sizing:border-box}}
+
+/* tarjetas estilo reuniones */
+#listaHoy,#agDia{display:flex;flex-direction:column;gap:10px;padding:14px}
+.pcard{--c:var(--primary);display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--c) 6%,var(--card));border:1px solid color-mix(in srgb,var(--c) 20%,transparent);cursor:pointer;min-width:0;transition:transform .16s var(--ease-out),box-shadow .2s,border-color .2s}
+.pcard:hover{transform:translateY(-2px);box-shadow:0 8px 24px color-mix(in srgb,var(--c) 16%,transparent);border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+.pcard .reu-tipo,.reu .reu-tipo{--c2:var(--c)}
+.pc-ini{flex:none;width:48px;height:48px;border-radius:12px;background:var(--c);color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px;letter-spacing:.02em}
+.pc-hora{width:58px;font-size:15px;font-variant-numeric:tabular-nums;line-height:1.1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pc-hora small{font-size:10px;font-weight:600;text-transform:uppercase;opacity:.9}
+.pc-urg{white-space:nowrap;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--danger) 16%,transparent);color:var(--danger);font-weight:600;font-size:12px}
+.pc-when{flex:none;font-size:13px;font-weight:600;padding:6px 10px;border-radius:10px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--fg);white-space:nowrap}
+.pcard.late .pc-when{background:var(--danger);color:#fff}
+.pcard .chip{font-size:12px}
+@media (max-width:720px){#listaHoy,#agDia{padding:10px}.pcard{flex-wrap:wrap}.pcard .reu-main{flex:1 1 0}.pc-when{flex:1 0 100%;max-width:calc(100% - 62px);margin-left:62px;text-align:center;box-sizing:border-box}}
+/* KPIs con color */
+.kpi{position:relative;overflow:hidden}
+.kpi0{--c:#ff9500}.kpi1{--c:var(--danger)}.kpi2{--c:#8e44ec}.kpi3{--c:#007aff}
+.kpi[class*=kpi]{background:linear-gradient(145deg,color-mix(in srgb,var(--c) 14%,var(--card)),var(--card) 70%);border-color:color-mix(in srgb,var(--c) 22%,transparent)}
+.kpi-ico{position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:11px;background:var(--c);display:grid;place-items:center}
+.kpi-ico svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.kpi:hover{box-shadow:0 8px 24px color-mix(in srgb,var(--c) 18%,transparent)}
+/* tarjetas del tablero */
+.card{transition:transform .16s var(--ease-out),box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
 </style>
 </head>
 <body>
@@ -836,18 +860,26 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     const venc = activos.filter(r => r.proximo && r.proximo < hoy).length;
     const reus = data.filter(r => enCartera(r) && r.reunion && r.reunion.slice(0,10) >= hoy).sort((a,b)=>a.reunion.localeCompare(b.reunion));
     const sinContacto = activos.filter(r => r.estado==='Nuevo').length;
+    const KICO = ['<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/>','<path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/>','<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>','<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>'];
     $('#kpis').innerHTML = [
       ['Para hoy', pendientes.length, 'hoy:#listaHoy'],
       ['Seguimientos vencidos', venc, 'hoy:#listaHoy'],
       ['Sin contactar', sinContacto, 'lista'],
       ['Reuniones próximas', reus.length, 'hoy:#listaReu']
-    ].map(([l,n,v]) => `<button type="button" class="kpi" data-go="${v}"><b>${n}</b><span>${l}</span></button>`).join('');
+    ].map(([l,n,v],i) => `<button type="button" class="kpi kpi${i}" data-go="${v}"><span class="kpi-ico"><svg viewBox="0 0 24 24" aria-hidden="true">${KICO[i]}</svg></span><b>${n}</b><span>${l}</span></button>`).join('');
     const lst = pendientes.filter(match).sort(ordenar);
     $('#hoyN').textContent = lst.length ? lst.length + ' prospectos' : '';
+    const AVC = ['var(--s-int)','var(--s-msg)','#8e44ec','var(--s-reu)','var(--primary)','var(--s-cli)','var(--muted-fg)'];
+    const inic = t => String(t||'?').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g,'').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?';
     $('#listaHoy').innerHTML = lst.length ? lst.map(r => {
-      const late = r.proximo && r.proximo < hoy;
+      const late = r.proximo && r.proximo < hoy, ai = AVANCES.indexOf(avance(r));
       const when = r.proximo ? (late ? 'Vencido · ' + fmtD(r.proximo) : 'Hoy') : 'Contactar';
-      return `<button type="button" class="row" data-id="${esc(r.id)}">${chipAv(r)}<span class="main"><span class="t">${esc(r.empresa)}</span><span class="m">${esc(r.nombre)} · ${esc(r.accion || 'Dar seguimiento')}</span></span>${chipCart(r.cartera)}<span class="when ${late?'late':''}">${when}</span></button>`;
+      return `<div class="pcard${late?' late':''}" role="button" tabindex="0" data-id="${esc(r.id)}" style="--c:${late?'var(--danger)':AVC[ai]}">
+        <div class="pc-ini">${esc(inic(r.empresa))}</div>
+        <div class="reu-main"><span class="reu-t">${esc(r.empresa)}</span>
+          <span class="reu-m"><span class="reu-tipo">${esc(avance(r))}</span>${esUrgente(r)?'<span class="pc-urg">Urgente</span>':''}${chipCart(r.cartera)}<span class="reu-con">${esc(r.nombre||'')}</span></span>
+          <span class="reu-dir">${esc(r.accion || 'Dar seguimiento')}</span></div>
+        <span class="pc-when">${when}</span></div>`;
     }).join('') : '<p class="empty">No hay seguimientos pendientes para hoy. Revisa el pipeline para elegir a quién contactar.</p>';
     $('#listaReu').innerHTML = reus.length ? reus.map(r => {
       const [fh, tipo='Reunión', ...resto] = String(r.reunion).split(' · '); const extra = resto.join(' · ').trim();
@@ -877,7 +909,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#listaN').textContent = rows.length + ' de ' + data.length + ' registros';
     $('#tbody').innerHTML = rows.map(r => `<tr data-id="${esc(r.id)}" tabindex="0"><td><b>${esc(r.empresa)}</b></td><td>${esc(r.nombre)}<br><span class="note">${esc(r.puesto)}</span></td><td><select data-cartsel="${esc(r.id)}" aria-label="Cartera de ${esc(r.empresa)}"><option value="" ${!r.cartera?'selected':''}>Sin asignar</option><option ${r.cartera==='Dirección'?'selected':''}>Dirección</option><option ${r.cartera==='Equipo'?'selected':''}>Equipo</option><option ${r.cartera==='Alianzas'?'selected':''}>Alianzas</option></select></td><td>${chipAv(r)}</td><td>${esc(r.estado)}</td><td>${esc(r.accion)}</td><td>${fmtD(r.proximo)}</td><td>${r.consentimiento==='Sí'?'Sí':esc(r.consentimiento||'Sin dato')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty">Sin resultados.</td></tr>';
     if(primeraVez && data.length){ primeraVez=false; document.querySelectorAll('#kpis .kpi b').forEach(contar);
-      document.querySelectorAll('.card,.row').forEach((el,i)=>el.style.setProperty('--i', Math.min(i%20,14)));
+      document.querySelectorAll('.card,.row,.pcard,.reu').forEach((el,i)=>el.style.setProperty('--i', Math.min(i%20,14)));
       document.body.classList.add('primera'); setTimeout(()=>document.body.classList.remove('primera'),1400); }
     renderAgenda();
   }
@@ -1145,7 +1177,8 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
         + (l.length>2?`<span class="mas">+${l.length-2} más</span>`:'')
         + (l.length?`<span class="dots">${l.slice(0,4).map(e=>`<span class="pt ${e.c}"></span>`).join('')}</span>`:'') + '</button>'; }
     $('#agCal').innerHTML = h;
-    const fila = (e, k) => `<button type="button" class="row" data-id="${esc(e.r.id)}"><span class="hora">${k?fmtCorto(k)+'<br>':''}${e.hora||'—'}</span><span class="main"><span class="t">${esc(e.r.empresa||'')}</span><span class="m">${/[rp]/.test(e.c)?esc(e.tipo):(e.c==='v'?'Vencido · ':'Seguimiento · ')+esc(e.tipo)} · ${esc(e.r.nombre||'')}</span></span><span class="lg lg-${e.c}"></span></button>`;
+    const CC = {r:'#007aff', p:'#8e44ec', s:'#ff9500', v:'var(--danger)'};
+    const fila = (e, k) => `<div class="pcard" role="button" tabindex="0" data-id="${esc(e.r.id)}" style="--c:${CC[e.c]}"><div class="pc-ini pc-hora">${k?`<small>${fmtCorto(k)}</small>`:''}${e.hora||'—'}</div><div class="reu-main"><span class="reu-t">${esc(e.r.empresa||'')}</span><span class="reu-m"><span class="reu-tipo">${/[rp]/.test(e.c)?esc(e.tipo.split(' · ')[0]):(e.c==='v'?'Vencido':'Seguimiento')}</span><span class="reu-con">${esc(e.r.nombre||'')}</span></span>${/[rp]/.test(e.c)?'':`<span class="reu-dir">${esc(e.tipo)}</span>`}</div></div>`;
     if (q()) {
       const todos = Object.keys(ev).sort().flatMap(k => ev[k].map(e => [e,k]));
       $('#agDiaT').textContent = 'Resultados: ' + todos.length;
