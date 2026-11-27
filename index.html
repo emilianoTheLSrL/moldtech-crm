@@ -469,6 +469,10 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 .ct-lg .mini-ini{width:40px;height:40px;border-radius:11px;font-size:15px}
 .ct-lg{gap:12px}
 .card .ct{display:flex}
+
+.seg-mini{display:inline-flex;background:var(--muted);border-radius:10px;padding:3px;gap:2px}
+.seg-mini button{border:0;background:transparent;border-radius:8px;padding:6px 14px;font:inherit;font-size:15px;font-weight:700;color:var(--muted-fg);cursor:pointer;transition:background-color .18s,color .18s}
+.seg-mini button[aria-pressed="true"]{background:var(--card);color:var(--fg);box-shadow:0 1px 4px rgba(0,0,0,.12)}
 </style>
 </head>
 <body>
@@ -514,7 +518,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     </div>
     <div class="kpis" id="kpis"></div>
     <div class="panel">
-      <div class="panel-h"><h2>Para hoy</h2><span class="note" id="hoyN"></span></div>
+      <div class="panel-h"><div class="seg-mini" id="hoyModo" role="tablist"><button type="button" data-m="hoy" aria-pressed="true">Para hoy</button><button type="button" data-m="semana" aria-pressed="false">Esta semana</button></div><span class="note" id="hoyN"></span></div>
       <div id="listaHoy"><p class="empty loading-preview" role="status">Cargando prospectos…<span class="skeleton" aria-hidden="true"></span><span class="skeleton" aria-hidden="true"></span><span class="skeleton" aria-hidden="true"></span></p></div>
     </div>
     <div class="panel">
@@ -854,6 +858,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   const AVC = ['var(--s-int)','var(--s-msg)','#8e44ec','var(--s-reu)','var(--primary)','var(--s-cli)','var(--muted-fg)'];
   const inic = t => String(t||'?').replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g,'').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?';
   const avColor = r => AVC[AVANCES.indexOf(avance(r))] || 'var(--primary)';
+  let hoyModo = store.get('mt_hoymodo') || 'hoy';
   let primeraVez = true;
   function contar(el){ const n=+el.textContent; if(!n) return; const t0=performance.now(), dur=700; el.textContent='0';
     const paso=t=>{ const k=Math.min(1,(t-t0)/dur); el.textContent=Math.round(n*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(paso); }; requestAnimationFrame(paso); }
@@ -868,7 +873,9 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#fechaHoy').textContent = new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
     const activos = data.filter(r => enCartera(r) && r.etapa !== 'Sin ajuste' && !['Ganado','Perdido','Archivado'].includes(r.estado));
     const pendientes = activos.filter(r => !(r.reunion && r.reunion.slice(0,10) >= hoy) && ((r.proximo && r.proximo <= hoy) || (r.etapa==='Urgente' && r.estado==='Nuevo')));
-    const venc = activos.filter(r => r.proximo && r.proximo < hoy).length;
+    const venc = pendientes.filter(r => r.proximo && r.proximo < hoy).length;
+    const fin7 = (()=>{ const d=new Date(hoy+'T12:00:00'); d.setDate(d.getDate()+7); return isoD(d); })();
+    const semana = activos.filter(r => !(r.reunion && r.reunion.slice(0,10) >= hoy) && ((r.proximo && r.proximo <= fin7) || (r.etapa==='Urgente' && r.estado==='Nuevo')));
     const reus = data.filter(r => enCartera(r) && r.reunion && r.reunion.slice(0,10) >= hoy).sort((a,b)=>a.reunion.localeCompare(b.reunion));
     const sinContacto = activos.filter(r => r.estado==='Nuevo').length;
     const KICO = ['<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/>','<path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/>','<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>','<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>'];
@@ -878,18 +885,19 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       ['Sin contactar', sinContacto, 'lista'],
       ['Reuniones próximas', reus.length, 'hoy:#listaReu']
     ].map(([l,n,v],i) => `<button type="button" class="kpi kpi${i}" data-go="${v}"><span class="kpi-ico"><svg viewBox="0 0 24 24" aria-hidden="true">${KICO[i]}</svg></span><b>${n}</b><span>${l}</span></button>`).join('');
-    const lst = pendientes.filter(match).sort(ordenar);
+    document.querySelectorAll('#hoyModo button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.m===hoyModo));
+    const lst = (hoyModo==='semana' ? semana.slice().sort((a,b)=>String(a.proximo||'0').localeCompare(String(b.proximo||'0')) || ordenar(a,b)) : pendientes.filter(()=>true).sort(ordenar)).filter(match);
     $('#hoyN').textContent = lst.length ? lst.length + ' prospectos' : '';
     $('#listaHoy').innerHTML = lst.length ? lst.map(r => {
       const late = r.proximo && r.proximo < hoy, ai = AVANCES.indexOf(avance(r));
-      const when = r.proximo ? (late ? 'Vencido · ' + fmtD(r.proximo) : 'Hoy') : 'Contactar';
+      const when = r.proximo ? (late ? 'Vencido · ' + fmtD(r.proximo) : r.proximo.slice(0,10)===hoy ? 'Hoy' : (t=>t[0].toUpperCase()+t.slice(1))(new Date(r.proximo.slice(0,10)+'T12:00:00').toLocaleDateString('es-MX',{weekday:'short',day:'numeric'}).replace('.',''))) : 'Contactar';
       return `<div class="pcard${late?' late':''}" role="button" tabindex="0" data-id="${esc(r.id)}" style="--c:${late?'var(--danger)':AVC[ai]}">
         <div class="pc-ini">${esc(inic(r.empresa))}</div>
         <div class="reu-main"><span class="reu-t">${esc(r.empresa)}</span>
           <span class="reu-m"><span class="reu-tipo">${esc(avance(r))}</span>${esUrgente(r)?'<span class="pc-urg">Urgente</span>':''}${chipCart(r.cartera)}<span class="reu-con">${esc(r.nombre||'')}</span></span>
           <span class="reu-dir">${esc(r.accion || 'Dar seguimiento')}</span></div>
         <span class="pc-when">${when}</span></div>`;
-    }).join('') : '<p class="empty">No hay seguimientos pendientes para hoy. Revisa el pipeline para elegir a quién contactar.</p>';
+    }).join('') : `<p class="empty">${hoyModo==='semana'?'No hay seguimientos para esta semana.':'No hay seguimientos pendientes para hoy. Revisa “Esta semana”.'}</p>`;
     $('#listaReu').innerHTML = reus.length ? reus.map(r => {
       const [fh, tipo='Reunión', ...resto] = String(r.reunion).split(' · '); const extra = resto.join(' · ').trim();
       const f = fh.slice(0,10), h = fh.slice(11,16), d = new Date(f+'T12:00:00');
@@ -1158,6 +1166,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   $('#cfgMail').addEventListener('change', async () => { try{ await gs('guardarConfig', $('#cfgMail').value.trim()); toast('Correo interno guardado'); }catch(e){ toast('No se pudo guardar el correo'); } });
 
 
+  $('#hoyModo').addEventListener('click', e => { const b=e.target.closest('[data-m]'); if(!b) return; hoyModo=b.dataset.m; store.set('mt_hoymodo', hoyModo); render(); });
   /* ---------- agenda ---------- */
   let agMes = new Date(); agMes.setDate(1); let agSel = null;
   const isoD = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
