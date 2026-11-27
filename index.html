@@ -521,7 +521,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     </div>
     <div class="kpis" id="kpis"></div>
     <div class="panel">
-      <div class="panel-h"><div class="seg-mini" id="hoyModo" role="tablist"><button type="button" data-m="hoy" aria-pressed="true">Para hoy</button><button type="button" data-m="semana" aria-pressed="false">Esta semana</button></div><span class="note" id="hoyN"></span></div>
+      <div class="panel-h"><div class="seg-mini" id="hoyModo" role="tablist"><button type="button" data-m="hoy" aria-pressed="true">Para hoy</button><button type="button" data-m="semana" aria-pressed="false">Esta semana</button></div><span class="note"><span class="lg lg-s"></span> pendiente · <span class="lg lg-v"></span> vencido · <span id="hoyN"></span></span></div>
       <div id="listaHoy"><p class="empty loading-preview" role="status">Cargando prospectos…<span class="skeleton" aria-hidden="true"></span><span class="skeleton" aria-hidden="true"></span><span class="skeleton" aria-hidden="true"></span></p></div>
     </div>
     <div class="panel">
@@ -894,10 +894,10 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#listaHoy').innerHTML = lst.length ? lst.map(r => {
       const late = r.proximo && r.proximo < hoy, ai = AVANCES.indexOf(avance(r));
       const when = r.proximo ? (late ? 'Vencido · ' + fmtD(r.proximo) : r.proximo.slice(0,10)===hoy ? 'Hoy' : (t=>t[0].toUpperCase()+t.slice(1))(new Date(r.proximo.slice(0,10)+'T12:00:00').toLocaleDateString('es-MX',{weekday:'short',day:'numeric'}).replace('.',''))) : 'Contactar';
-      return `<div class="pcard${late?' late':''}" role="button" tabindex="0" data-id="${esc(r.id)}" style="--c:${late?'var(--danger)':AVC[ai]}">
+      return `<div class="pcard${late?' late':''}" role="button" tabindex="0" data-id="${esc(r.id)}" style="--c:${late?'var(--danger)':'#ff9500'}">
         <div class="pc-ini">${esc(inic(r.empresa))}</div>
         <div class="reu-main"><span class="reu-t">${esc(r.empresa)}</span>
-          <span class="reu-m"><span class="reu-tipo">${esc(avance(r))}</span>${esUrgente(r)?'<span class="pc-urg">Urgente</span>':''}${chipCart(r.cartera)}<span class="reu-con">${esc(r.nombre||'')}</span></span>
+          <span class="reu-m"><span class="reu-tipo" style="--c:${AVC[ai]}">${esc(avance(r))}</span>${esUrgente(r)?'<span class="pc-urg">Urgente</span>':''}${chipCart(r.cartera)}<span class="reu-con">${esc(r.nombre||'')}</span></span>
           <span class="reu-dir">${esc(r.accion || 'Dar seguimiento')}</span></div>
         <span class="pc-when">${when}</span></div>`;
     }).join('') : `<p class="empty">${hoyModo==='semana'?'No hay seguimientos para esta semana.':'No hay seguimientos pendientes para hoy. Revisa “Esta semana”.'}</p>`;
@@ -1256,7 +1256,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
         + (l.length?`<span class="dots">${l.slice(0,4).map(e=>`<span class="pt ${e.c}"></span>`).join('')}</span>`:'') + '</button>'; }
     $('#agCal').innerHTML = h;
     const CC = {r:'#007aff', p:'#8e44ec', s:'#ff9500', v:'var(--danger)'};
-    const fila = (e, k) => `<div class="pcard" role="button" tabindex="0" data-id="${esc(e.r.id)}" style="--c:${CC[e.c]}"><div class="pc-ini pc-hora">${k?`<small>${fmtCorto(k)}</small>`:''}${e.hora||'—'}</div><div class="reu-main"><span class="reu-t">${esc(e.r.empresa||'')}</span><span class="reu-m"><span class="reu-tipo">${/[rp]/.test(e.c)?esc(e.tipo.split(' · ')[0]):(e.c==='v'?'Vencido':'Seguimiento')}</span><span class="reu-con">${esc(e.r.nombre||'')}</span></span>${/[rp]/.test(e.c)?'':`<span class="reu-dir">${esc(e.tipo)}</span>`}</div></div>`;
+    const fila = (e, k) => `<div class="pcard" role="button" tabindex="0" data-id="${esc(e.r.id)}" style="--c:${CC[e.c]}"><div class="pc-ini${(e.hora||k)?' pc-hora':''}">${e.hora ? (k?`<small>${fmtCorto(k)}</small>`:'') + e.hora : (k?`<small>${fmtCorto(k)}</small>`:'') + esc(inic(e.r.empresa))}</div><div class="reu-main"><span class="reu-t">${esc(e.r.empresa||'')}</span><span class="reu-m"><span class="reu-tipo">${/[rp]/.test(e.c)?esc(e.tipo.split(' · ')[0]):(e.c==='v'?'Vencido':'Seguimiento')}</span><span class="reu-con">${esc(e.r.nombre||'')}</span></span>${/[rp]/.test(e.c)?'':`<span class="reu-dir">${esc(e.tipo)}</span>`}</div></div>`;
     if (q()) {
       const todos = Object.keys(ev).sort().flatMap(k => ev[k].map(e => [e,k]));
       $('#agDiaT').textContent = 'Resultados: ' + todos.length;
