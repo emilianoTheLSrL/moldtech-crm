@@ -473,6 +473,9 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 .seg-mini{display:inline-flex;background:var(--muted);border-radius:10px;padding:3px;gap:2px}
 .seg-mini button{border:0;background:transparent;border-radius:8px;padding:6px 14px;font:inherit;font-size:15px;font-weight:700;color:var(--muted-fg);cursor:pointer;transition:background-color .18s,color .18s}
 .seg-mini button[aria-pressed="true"]{background:var(--card);color:var(--fg);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+
+#agFiltro{margin:4px 0 2px;padding:8px 12px;border-radius:10px;background:color-mix(in srgb,#ff9500 12%,var(--card));color:var(--fg);font-size:14px}
+.linkbtn{border:0;background:none;color:var(--ring);font:inherit;font-weight:700;cursor:pointer;padding:0;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -536,7 +539,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 
   <!-- AGENDA -->
   <section id="v-agenda" class="view" hidden>
-    <div><h1>Agenda</h1><p class="sub">Demo / llamada <span class="lg lg-r"></span> · visita a planta <span class="lg lg-p"></span> · pendiente de hablar <span class="lg lg-s"></span> · vencido <span class="lg lg-v"></span></p></div>
+    <div><h1>Agenda</h1><p class="note" id="agFiltro" hidden></p><p class="sub">Demo / llamada <span class="lg lg-r"></span> · visita a planta <span class="lg lg-p"></span> · pendiente de hablar <span class="lg lg-s"></span> · vencido <span class="lg lg-v"></span></p></div>
     <div class="agwrap">
       <div class="panel">
         <div class="panel-h"><button class="btn sm" type="button" id="agPrev" aria-label="Mes anterior">‹</button><h2 id="agMes"></h2><div style="display:flex;gap:6px"><button class="btn sm" type="button" id="agHoy">Hoy</button><button class="btn sm" type="button" id="agNext" aria-label="Mes siguiente">›</button></div></div>
@@ -837,7 +840,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   async function cargar(){
     try{
       const d = await gs('init');
-      data = d.registros; usuario = d.nombre; equipo = d.equipo || []; remitentes = d.remitentes || []; firmas = d.firmas || []; $('#dPdfWrap').hidden = !d.presentacion; miClave = d.usuario || ''; $('#cfgMail').value = d.correoInterno || '';
+      data = (d.registros || []).map(r => { if (r && r.proximo && /^\d{4}-\d{2}-\d{2}T/.test(String(r.proximo))) r.proximo = String(r.proximo).slice(0,10); if (r && r.reunion != null && typeof r.reunion !== 'string') r.reunion = String(r.reunion); return r; }); usuario = d.nombre; equipo = d.equipo || []; remitentes = d.remitentes || []; firmas = d.firmas || []; $('#dPdfWrap').hidden = !d.presentacion; miClave = d.usuario || ''; $('#cfgMail').value = d.correoInterno || '';
       $('#avatar').textContent = (d.nombre||'?').slice(0,1).toUpperCase(); $('#login').hidden = true; if(!cargar.ya){ cargar.ya=true; document.body.classList.add('entrada'); setTimeout(()=>document.body.classList.remove('entrada'), 1200); }
       $('#sync').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
       render();
@@ -872,11 +875,11 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#carteraBar').innerHTML = CARTERAS.map(([v,l]) => `<button type="button" data-cart="${esc(v)}" aria-pressed="${v===cartera}">${esc(l)} · ${v==='todas'?data.length:data.filter(r=>(r.cartera||'')===v).length}</button>`).join('');
     $('#fechaHoy').textContent = new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
     const activos = data.filter(r => enCartera(r) && r.etapa !== 'Sin ajuste' && !['Ganado','Perdido','Archivado'].includes(r.estado));
-    const pendientes = activos.filter(r => !(r.reunion && r.reunion.slice(0,10) >= hoy) && ((r.proximo && r.proximo <= hoy) || (r.etapa==='Urgente' && r.estado==='Nuevo')));
+    const pendientes = activos.filter(r => !(r.reunion && /^\d{4}-\d{2}-\d{2}/.test(r.reunion) && r.reunion.slice(0,10) >= hoy) && ((r.proximo && r.proximo <= hoy) || (r.etapa==='Urgente' && r.estado==='Nuevo')));
     const venc = pendientes.filter(r => r.proximo && r.proximo < hoy).length;
     const fin7 = (()=>{ const d=new Date(hoy+'T12:00:00'); d.setDate(d.getDate()+7); return isoD(d); })();
-    const semana = activos.filter(r => !(r.reunion && r.reunion.slice(0,10) >= hoy) && ((r.proximo && r.proximo <= fin7) || (r.etapa==='Urgente' && r.estado==='Nuevo')));
-    const reus = data.filter(r => enCartera(r) && r.reunion && r.reunion.slice(0,10) >= hoy).sort((a,b)=>a.reunion.localeCompare(b.reunion));
+    const semana = activos.filter(r => !(r.reunion && /^\d{4}-\d{2}-\d{2}/.test(r.reunion) && r.reunion.slice(0,10) >= hoy) && ((r.proximo && r.proximo <= fin7) || (r.etapa==='Urgente' && r.estado==='Nuevo')));
+    const reus = data.filter(r => enCartera(r) && r.reunion && /^\d{4}-\d{2}-\d{2}/.test(r.reunion) && r.reunion.slice(0,10) >= hoy).sort((a,b)=>a.reunion.localeCompare(b.reunion));
     const sinContacto = activos.filter(r => r.estado==='Nuevo').length;
     const KICO = ['<path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/>','<path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/>','<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>','<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>'];
     $('#kpis').innerHTML = [
@@ -1032,7 +1035,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   document.addEventListener('click', e => {
     if (e.target.closest('select')) return;
     const cb = e.target.closest('[data-cart]'); if (cb) { cartera = cb.dataset.cart; store.set('mt_cartera', cartera); render(); return; }
-    const go = e.target.closest('[data-go]'); if (go) { const [v, sel] = go.dataset.go.split(':'); setView(v);
+    const go = e.target.closest('[data-go]'); if (go) { const [v, sel] = go.dataset.go.split(':'); if (sel==='#listaHoy' && hoyModo!=='hoy') { hoyModo='hoy'; store.set('mt_hoymodo','hoy'); render(); } setView(v);
       if (sel) { const p = $(sel).closest('.panel') || $(sel); setTimeout(() => { p.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); p.classList.remove('flash'); void p.offsetWidth; p.classList.add('flash'); }, 50); }
       return; }
     const f = e.target.closest('[data-f]'); if (f) { filtro = f.dataset.f; render(); return; }
@@ -1057,7 +1060,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#dSub').textContent = [r.nombre, r.puesto].filter(Boolean).join(' · ');
     $('#dChips').innerHTML = chipAv(r) + chipCons(r.consentimiento) + (r.origen?`<span class="chip">${esc(r.origen)}</span>`:'');
     $('#dAvance').innerHTML = AVANCES.map(e=>`<option value="${esc(e)}" ${e===avance(r)?'selected':''}>${esc(e)}</option>`).join('');
-    $('#dUrg').checked = esUrgente(r); $('#dAvance').className = 'avsel av' + AVANCES.indexOf(avance(r)); if(avance(r)==='Cliente') festejar();
+    $('#dUrg').checked = esUrgente(r); $('#dAvance').className = 'avsel av' + AVANCES.indexOf(avance(r)); $('#dUrg').disabled = ['Cliente','No le interesa'].includes(avance(r));
     $('#dCartera').value = r.cartera || '';
     const cuentas = [...new Set(['jl.rangel@moldtech.mx', 'le.rosas@moldtech.mx', ...remitentes])];
     $('#dFrom').innerHTML = cuentas.map(m => {
@@ -1085,7 +1088,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     const FIJOS=[['JL','jl.rangel1090@gmail.com'],['Enrike','enriquerosas@torosqui.com.mx'],['Emiliano','emilianomeneses13579@gmail.com']];
     const extra=equipo.filter(u=>u.email && !['jl.rangel@moldtech.mx',...FIJOS.map(f=>f[1])].includes(u.email.toLowerCase())).map(u=>[u.nombre,u.email]);
     $('#rTeam').innerHTML = FIJOS.concat(extra).map(([n,e])=>`<label class="pill" title="${esc(e)}"><input type="checkbox" value="${esc(e)}"><span>${esc(n)}</span></label>`).join('');
-    $('#dHist').innerHTML = (r.historial||[]).slice().reverse().map(h=>`<div><span class="dot" style="color:var(--accent);margin-top:7px"></span><span>${esc(h.txt)}<small>${new Date(h.t).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} · ${esc(h.quien||'')}</small></span></div>`).join('') || '<p class="note">Sin movimientos todavía.</p>';
+    $('#dHist').innerHTML = (h => { if (typeof h === 'string') { try { h = JSON.parse(h); } catch(e) { h = []; } } return Array.isArray(h) ? h : []; })(r.historial).slice().reverse().map(h=>`<div><span class="dot" style="color:var(--accent);margin-top:7px"></span><span>${esc(h.txt)}<small>${new Date(h.t).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} · ${esc(h.quien||'')}</small></span></div>`).join('') || '<p class="note">Sin movimientos todavía.</p>';
     $('#delConfirm').hidden = true; $('#aDel').hidden = false;
     updLinks();
   }
@@ -1136,7 +1139,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     try{ const s = await gs('guardar', r, nota||''); const i=data.findIndex(x=>x.id===s.id); if(i>=0) data[i]=s; else data.push(s); render(); if(abierto && abierto.id===s.id) llenarFicha(s); return s; }
     catch(e){ toast('No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.'); throw e; }
   }
-  $('#dAvance').addEventListener('change', () => { const r=abierto, old=avance(r); setAvance(r, $('#dAvance').value); if ($('#dUrg').checked && ['Nuevo','Contactado','Respondió'].includes(r.estado)) r.etapa='Urgente'; $('#dAvance').className = 'avsel av' + AVANCES.indexOf(avance(r)); guardar(r,'Etapa: '+old+' → '+avance(r)).then(()=>toast('Etapa actualizada')); });
+  $('#dAvance').addEventListener('change', () => { const r=abierto, old=avance(r); setAvance(r, $('#dAvance').value); if(avance(r)==='Cliente' && old!=='Cliente') festejar(); $('#dUrg').disabled = ['Cliente','No le interesa'].includes(avance(r)); if ($('#dUrg').checked && ['Nuevo','Contactado','Respondió'].includes(r.estado)) r.etapa='Urgente'; $('#dAvance').className = 'avsel av' + AVANCES.indexOf(avance(r)); guardar(r,'Etapa: '+old+' → '+avance(r)).then(()=>toast('Etapa actualizada')); });
   $('#dUrg').addEventListener('change', () => { const r=abierto; if ($('#dUrg').checked) r.etapa='Urgente'; else if (r.etapa==='Urgente') r.etapa='Interesado'; guardar(r, $('#dUrg').checked ? 'Marcado como urgente' : 'Ya no es urgente').then(()=>toast('Listo')); });
   $('#dCartera').addEventListener('change', () => { const r=abierto, old=r.cartera||'Sin asignar'; r.cartera=$('#dCartera').value; guardar(r,'Cartera: '+old+' → '+(r.cartera||'Sin asignar')).then(()=>toast('Cartera actualizada')); });
 
@@ -1240,6 +1243,8 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
   function renderAgenda(){
     if (!$('#agCal')) return;
     const ev = eventosAgenda(), hoy = hoyISO(); if (!agSel) agSel = hoy;
+    const fl = [cartera!=='todas' ? 'cartera “' + (cartera || 'Sin asignar') + '”' : '', q() ? 'búsqueda “' + $('#q').value.trim() + '”' : ''].filter(Boolean);
+    $('#agFiltro').hidden = !fl.length; $('#agFiltro').innerHTML = fl.length ? 'Solo se muestra: ' + esc(fl.join(' y ')) + ' · <button type="button" class="linkbtn" id="agVerTodo">Ver todo</button>' : '';
     { const t=agMes.toLocaleDateString('es-MX',{month:'long',year:'numeric'}).replace(' de ',' '); $('#agMes').textContent = t[0].toUpperCase()+t.slice(1); }
     const ini = new Date(agMes); ini.setDate(1 - ((ini.getDay()+6)%7));
     let h = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d=>`<div class="dw">${d}</div>`).join('');
@@ -1263,6 +1268,7 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#agDia').innerHTML = l.length ? l.map(e=>fila(e)).join('') : '<p class="empty">Nada para este día.</p>';
   }
   $('#agCal').addEventListener('click', e => { const d=e.target.closest('[data-dia]'); if(!d) return; agSel=d.dataset.dia; const f=new Date(agSel+'T12:00:00'); if(f.getMonth()!==agMes.getMonth()){ agMes=new Date(f.getFullYear(),f.getMonth(),1); } renderAgenda(); });
+  document.addEventListener('click', e => { if (e.target.id==='agVerTodo') { cartera='todas'; store.set('mt_cartera', cartera); $('#q').value=''; render(); } });
   $('#agPrev').addEventListener('click', () => { agMes.setMonth(agMes.getMonth()-1); renderAgenda(); });
   $('#agNext').addEventListener('click', () => { agMes.setMonth(agMes.getMonth()+1); renderAgenda(); });
   $('#agHoy').addEventListener('click', () => { agMes=new Date(); agMes.setDate(1); agSel=hoyISO(); renderAgenda(); });
