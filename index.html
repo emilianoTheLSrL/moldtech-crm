@@ -936,35 +936,90 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     return data.filter(r => match(r) && (filtro==='Todos' || (filtro==='Urgentes' ? esUrgente(r) : avance(r)===filtro))).sort(ordenar);
   }
   function cargarXLSX(){
-    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (window.ExcelJS) return Promise.resolve(window.ExcelJS);
     return new Promise((ok, mal) => {
       const s = document.createElement('script');
-      s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
-      s.onload = () => ok(window.XLSX); s.onerror = () => mal(new Error('No se pudo cargar el generador de Excel.'));
+      s.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+      s.onload = () => ok(window.ExcelJS); s.onerror = () => mal(new Error('No se pudo cargar el generador de Excel.'));
       document.head.appendChild(s);
     });
   }
   async function descargarExcel(){
     const b = $('#btnExcel'); b.disabled = true;
     try {
-      const X = await cargarXLSX();
-      const ult = r => { let h = r.historial; if (typeof h === 'string') { try { h = JSON.parse(h); } catch(e) { h = []; } }
-        h = Array.isArray(h) ? h : []; const u = h[h.length-1]; if (!u) return '';
-        return (u.t ? new Date(u.t).toLocaleString('es-MX',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) + ' · ' : '') + (u.quien ? u.quien + ' · ' : '') + (u.txt || ''); };
-      const head = ['Empresa','Contacto','Puesto','Teléfono','Correo','Ubicación','Cartera','Etapa','Estado','Prioridad','Máquinas','Tipo de máquinas','Siguiente acción','Próximo','Reunión','Consentimiento','Origen','Notas','Último movimiento'];
-      const filas = filasVisibles().map(r => [r.empresa, r.nombre, r.puesto, r.tel, r.email, r.ubicacion, r.cartera || 'Sin asignar', ETAPA_LBL[r.etapa] || r.etapa, r.estado, r.prioridad, r.maquinas, r.tipoMaquinas, r.accion, r.proximo ? String(r.proximo).slice(0,10) : '', r.reunion, r.consentimiento, r.origen, r.notas, ult(r)].map(v => v == null ? '' : String(v)));
-      if (!filas.length) { toast('No hay registros para descargar.'); return; }
-      const ws = X.utils.aoa_to_sheet([head].concat(filas));
-      ws['!cols'] = head.map((h,i) => ({ wch: Math.min(60, Math.max(h.length, ...filas.map(f => f[i].length)) + 2) }));
-      ws['!freeze'] = { xSplit: 0, ySplit: 1 };
-      ws['!views'] = [{ state: 'frozen', ySplit: 1, topLeftCell: 'A2' }];
-      head.forEach((h,i) => { const c = ws[X.utils.encode_cell({r:0,c:i})]; if (c) c.s = { font: { bold: true } }; });
-      ws['!autofilter'] = { ref: X.utils.encode_range({s:{r:0,c:0}, e:{r:filas.length, c:head.length-1}}) };
-      const wb = X.utils.book_new(); X.utils.book_append_sheet(wb, ws, 'Prospectos');
-      const cart = (cartera === 'todas' ? 'Todas' : (cartera || 'Sin-asignar')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
+      const EJ = await cargarXLSX();
+      const hist = r => { let h = r.historial; if (typeof h === 'string') { try { h = JSON.parse(h); } catch(e) { h = []; } } return Array.isArray(h) ? h : []; };
+      const COL = ['FF9500','007AFF','8E44EC','0D9488','263A5E','16A34A','8E8E93']; // por etapa
+      const fecha = t => { if (!t) return null; const m = String(t).match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/); return m ? new Date(Date.UTC(+m[1], m[2]-1, +m[3], +(m[4]||0), +(m[5]||0))) : null; };
+      const wall = d => new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes())); // Excel guarda en UTC: usamos la hora local tal cual
+      const rows = filasVisibles().slice().sort((x,y) => AVANCES.indexOf(avance(x)) - AVANCES.indexOf(avance(y)) || String(x.proximo||'9').localeCompare(String(y.proximo||'9')) || String(x.empresa).localeCompare(String(y.empresa)));
+      if (!rows.length) { toast('No hay registros para descargar.'); return; }
+      const wb = new EJ.Workbook(); wb.creator = 'MoldTech CRM'; wb.created = new Date();
+      const NAVY = 'FF263A5E', borde = { bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } } };
+      const encabezado = (ws) => { const h = ws.getRow(1); h.height = 26; h.eachCell(c => { c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } }; c.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; }); ws.views = [{ state: 'frozen', ySplit: 1 }]; };
+      const pill = (c, hex) => { c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + hex } }; c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.alignment = { horizontal: 'center', vertical: 'middle' }; };
+
+      /* Hoja 1: Prospectos */
+      const ws = wb.addWorksheet('Prospectos', { properties: { tabColor: { argb: NAVY } } });
+      ws.columns = [
+        { header: 'Empresa', key: 'empresa', width: 32 }, { header: 'Etapa', key: 'etapa', width: 18 }, { header: 'Urgente', key: 'urg', width: 9 },
+        { header: 'Contacto', key: 'nombre', width: 26 }, { header: 'Puesto', key: 'puesto', width: 22 }, { header: 'Teléfono', key: 'tel', width: 18 },
+        { header: 'Correo', key: 'email', width: 32 }, { header: 'Ubicación', key: 'ubi', width: 26 }, { header: '¿Quién lo atiende?', key: 'cart', width: 16 },
+        { header: 'Siguiente acción', key: 'accion', width: 44 }, { header: 'Próximo seguimiento', key: 'prox', width: 16 }, { header: 'Reunión', key: 'reu', width: 18 },
+        { header: 'Tipo de reunión', key: 'tipo', width: 18 }, { header: 'Máquinas', key: 'maq', width: 18 }, { header: 'Último movimiento', key: 'ult', width: 50 },
+        { header: 'Fecha últ. mov.', key: 'ultf', width: 16 }, { header: 'Notas', key: 'notas', width: 50 }
+      ];
+      rows.forEach(r => {
+        const h = hist(r), u = h[h.length-1] || {}, [fh, tipo] = String(r.reunion||'').split(' · ');
+        ws.addRow({ empresa: r.empresa||'', etapa: avance(r), urg: esUrgente(r) ? 'Sí' : '', nombre: r.nombre||'', puesto: r.puesto||'', tel: r.tel ? String(r.tel) : '',
+          email: r.email||'', ubi: r.ubicacion||'', cart: r.cartera||'Sin asignar', accion: r.accion||'', prox: fecha(r.proximo), reu: fecha(fh), tipo: fh ? (tipo||'') : '',
+          maq: [r.maquinas, r.tipoMaquinas].filter(Boolean).join(' · '), ult: u.txt ? (u.quien ? u.quien + ': ' : '') + u.txt : '', ultf: u.t ? wall(new Date(u.t)) : null, notas: r.notas||'' });
+      });
+      encabezado(ws);
+      const hoy0 = (n => new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())))(new Date());
+      ws.eachRow((row, i) => { if (i === 1) return;
+        row.height = 22; row.alignment = { vertical: 'middle', wrapText: false };
+        row.eachCell({ includeEmpty: true }, c => { c.border = borde; if (i % 2 === 0) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } }; });
+        row.getCell('empresa').font = { bold: true };
+        pill(row.getCell('etapa'), COL[AVANCES.indexOf(row.getCell('etapa').value)] || '8E8E93');
+        if (row.getCell('urg').value) row.getCell('urg').font = { bold: true, color: { argb: 'FFDC2626' } };
+        row.getCell('prox').numFmt = 'dd-mmm-yyyy'; row.getCell('reu').numFmt = 'dd-mmm-yyyy hh:mm'; row.getCell('ultf').numFmt = 'dd-mmm-yyyy';
+        const px = row.getCell('prox').value; if (px instanceof Date && px < hoy0) row.getCell('prox').font = { bold: true, color: { argb: 'FFDC2626' } };
+        ['accion','ult','notas'].forEach(k => row.getCell(k).alignment = { vertical: 'middle', wrapText: true });
+        const em = row.getCell('email').value; if (em) row.getCell('email').value = { text: em, hyperlink: 'mailto:' + em };
+        row.getCell('email').font = { color: { argb: 'FF0A66D6' }, underline: true };
+      });
+      ws.autoFilter = { from: 'A1', to: { row: rows.length + 1, column: ws.columns.length } };
+
+      /* Hoja 2: Reuniones */
+      const wr = wb.addWorksheet('Reuniones', { properties: { tabColor: { argb: 'FF007AFF' } } });
+      wr.columns = [{ header: 'Fecha y hora', key: 'f', width: 20 }, { header: 'Empresa', key: 'e', width: 32 }, { header: 'Contacto', key: 'c', width: 26 }, { header: 'Tipo', key: 't', width: 18 }, { header: 'Link / dirección', key: 'x', width: 60 }];
+      rows.filter(r => r.reunion && fecha(r.reunion) >= hoy0).sort((x,y) => String(x.reunion).localeCompare(String(y.reunion))).forEach(r => {
+        const [fh, tipo='', ...rest] = String(r.reunion).split(' · '); const x = rest.join(' · ');
+        const row = wr.addRow({ f: fecha(fh), e: r.empresa||'', c: r.nombre||'', t: tipo, x });
+        row.getCell('f').numFmt = 'ddd dd-mmm-yyyy hh:mm'; row.getCell('e').font = { bold: true }; pill(row.getCell('t'), /visita|planta/i.test(tipo) ? '8E44EC' : '007AFF');
+        if (/^https?:/.test(x)) { row.getCell('x').value = { text: x, hyperlink: x }; row.getCell('x').font = { color: { argb: 'FF0A66D6' }, underline: true }; }
+        row.height = 22; row.eachCell(c => c.border = borde);
+      });
+      encabezado(wr);
+
+      /* Hoja 3: Resumen */
+      const wsR = wb.addWorksheet('Resumen', { properties: { tabColor: { argb: 'FF16A34A' } } });
+      wsR.columns = [{ header: 'Etapa', key: 'a', width: 24 }, { header: 'Prospectos', key: 'n', width: 14 }];
+      AVANCES.forEach((a, i) => { const row = wsR.addRow({ a, n: rows.filter(r => avance(r) === a).length }); pill(row.getCell('a'), COL[i]); row.height = 22; row.getCell('n').alignment = { horizontal: 'center' }; });
+      const tot = wsR.addRow({ a: 'Total', n: rows.length }); tot.font = { bold: true }; tot.getCell('n').alignment = { horizontal: 'center' };
+      wsR.addRow({}); const hd = wsR.addRow({ a: '¿Quién lo atiende?', n: 'Prospectos' }); hd.eachCell(c => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } }; });
+      ['Dirección','Equipo','Alianzas',''].forEach(c => { const row = wsR.addRow({ a: c || 'Sin asignar', n: rows.filter(r => (r.cartera||'') === c).length }); row.getCell('n').alignment = { horizontal: 'center' }; });
+      wsR.addRow({}); wsR.addRow({ a: 'Generado: ' + new Date().toLocaleString('es-MX') }).font = { italic: true, color: { argb: 'FF6B7280' } };
+      encabezado(wsR);
+      wsR.orderNo = 0; ws.orderNo = 1; wr.orderNo = 2; // Resumen primero
+
+      const buf = await wb.xlsx.writeBuffer();
+      const cart = (cartera === 'todas' ? 'Todas' : (cartera || 'Sin-asignar')).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
       const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
-      X.writeFile(wb, 'MoldTech-CRM_' + cart + '_' + hoy + '.xlsx');
-      toast('Excel descargado: ' + filas.length + ' registros');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+      a.download = 'MoldTech-CRM_' + cart + '_' + hoy + '.xlsx'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      toast('Excel descargado: ' + rows.length + ' registros');
     } catch (e) { toast(e.message || 'No se pudo generar el Excel.'); }
     finally { b.disabled = false; }
   }
