@@ -476,6 +476,11 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
 
 #agFiltro{margin:4px 0 2px;padding:8px 12px;border-radius:10px;background:color-mix(in srgb,#ff9500 12%,var(--card));color:var(--fg);font-size:14px}
 .linkbtn{border:0;background:none;color:var(--ring);font:inherit;font-weight:700;cursor:pointer;padding:0;text-decoration:underline}
+
+.reubox{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:color-mix(in srgb,#007aff 6%,var(--card));border:1px solid color-mix(in srgb,#007aff 18%,var(--border))}
+.reubox > div{display:flex;flex-direction:column;gap:2px}
+.reubox > div span{font-size:14px;color:var(--muted-fg)}
+.reubox > div span::first-letter{text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -644,6 +649,11 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
       </div>
       <div class="field"><span style="font-size:12px;font-weight:600;color:var(--muted-fg)">Invitar a</span><div class="team pills" id="rTeam"></div></div>
       <label class="field" style="flex-direction:row;align-items:center;gap:8px;font-size:14px"><input id="rMeet" type="checkbox" checked style="width:20px;height:20px;min-height:0">Agregar link de Google Meet</label>
+      <div class="reubox" id="reuActual" hidden>
+        <div><b>Reunión actual</b><span id="reuActualTxt"></span></div>
+        <button class="btn primary" type="button" id="aReagendar"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg><span>Mover reunión a la fecha y hora de arriba</span></button>
+        <p class="note">Mueve la misma reunión (mismo link de Meet) y le avisa al cliente. Si quieres una reunión extra, usa el botón de abajo.</p>
+      </div>
       <button class="btn" type="button" id="aAgendar"><svg class="ico" aria-hidden="true"><use href="#i-cal"/></svg><span id="aAgendarTxt">Agendar y enviar invitación</span></button>
       <p class="note">Sin "Invitar al prospecto" queda solo como recordatorio en el calendario de jl.rangel (al cliente no le llega nada).</p>
       <p class="note" id="dReunion"></p>
@@ -1083,8 +1093,11 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     $('#f_prioridad').value = r.prioridad || 'Media';
     $('#dExtra').textContent = [r.senal && 'Señal: '+r.senal, r.motivo && 'Evidencia: '+r.motivo, r.alertas && 'Alertas: '+r.alertas].filter(Boolean).join(' · ');
     $('#dProx').value = r.proximo || ''; $('#dLog').value = '';
-    $('#dReunion').textContent = r.reunion ? 'Reunión agendada: ' + r.reunion : '';
-    $('#rFecha').value = '';
+    $('#dReunion').textContent = '';
+    { const m = String(r.reunion||'').match(/^(\d{4}-\d{2}-\d{2})(?: (\d{2}:\d{2}))?/); $('#reuActual').hidden = !m;
+      if (m) { const p = String(r.reunion).split(' · '); $('#reuActualTxt').textContent = new Date(m[1]+'T12:00:00').toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'}) + (m[2]?' · '+m[2]:'') + (p[1]?' · '+p[1]:''); }
+      $('#aAgendar').dataset.extra = m ? '1' : ''; try{ agTxt(); }catch(e){} }
+    $('#rFecha').value = ''; { const mh = String(r.reunion||'').match(/^\d{4}-\d{2}-\d{2} (\d{2}:\d{2})/); if (mh) $('#rHora').value = mh[1]; }
     const FIJOS=[['JL','jl.rangel1090@gmail.com'],['Enrike','enriquerosas@torosqui.com.mx'],['Emiliano','emilianomeneses13579@gmail.com']];
     const extra=equipo.filter(u=>u.email && !['jl.rangel@moldtech.mx',...FIJOS.map(f=>f[1])].includes(u.email.toLowerCase())).map(u=>[u.nombre,u.email]);
     $('#rTeam').innerHTML = FIJOS.concat(extra).map(([n,e])=>`<label class="pill" title="${esc(e)}"><input type="checkbox" value="${esc(e)}"><span>${esc(n)}</span></label>`).join('');
@@ -1204,8 +1217,17 @@ button.kpi:active,.card:active,.row:active,.btn:not(:disabled):active,.tab:activ
     const r=abierto; ['nombre','empresa','puesto','tel','email','maquinas','tipoMaquinas','ubicacion','notas'].forEach(k => r[k]=$('#f_'+k).value.trim()); r.prioridad=$('#f_prioridad').value; r.mensaje=$('#dMsg').value;
     const b=$('#aSave'); b.disabled=true; try{ await guardar(r,'Datos actualizados'); toast('Cambios guardados'); } finally { b.disabled=false; }
   });
-  const agTxt = () => { const t=$('#aAgendarTxt'); if (t) t.textContent = ($('#rInv').checked || document.querySelector('#rTeam input:checked')) ? 'Agendar y enviar invitación' : 'Guardar en calendario'; };
+  const agTxt = () => { const t=$('#aAgendarTxt'); if (t) t.textContent = $('#aAgendar').dataset.extra ? 'Agendar otra reunión nueva' : (($('#rInv').checked || document.querySelector('#rTeam input:checked')) ? 'Agendar y enviar invitación' : 'Guardar en calendario'); };
   $('#rInv').addEventListener('change', agTxt); $('#rTeam').addEventListener('change', agTxt);
+
+  $('#aReagendar').addEventListener('click', async () => {
+    const r=abierto, f=$('#rFecha').value, h=$('#rHora').value;
+    if(!f||!h){ toast('Elige la nueva fecha y hora arriba'); $('#rFecha').focus(); return; }
+    const b=$('#aReagendar'), txt=b.innerHTML; b.disabled=true; b.textContent='Moviendo…';
+    try{ const s = await gs('reagendar', r.id, f, h); const i=data.findIndex(x=>x.id===s.id); data[i]=s; render(); llenarFicha(s); toast('Reunión movida y cliente avisado'); }
+    catch(e){ const d='No se pudo mover: ' + (e && e.message ? e.message : 'revisa la conexión'); $('#dReunion').textContent=d; toast(d); }
+    finally{ b.disabled=false; b.innerHTML=txt; }
+  });
   $('#aAgendar').addEventListener('click', async () => {
     const r=abierto, f=$('#rFecha').value, h=$('#rHora').value, t=$('#rTipo').value;
     if(!f||!h){ toast('Elige fecha y hora'); return; }

@@ -58,7 +58,7 @@ function doGet() {
 /** API para la pantalla publicada en GitHub Pages (POST con JSON {fn, args}). */
 function doPost(e) {
   const API = { login: login, salir: salir, cambiarPassword: cambiarPassword, guardarMiCorreo: guardarMiCorreo, init: init,
-    guardarConfig: guardarConfig, guardar: guardar, borrar: borrar, registrarNuevo: registrarNuevo, agendar: agendar, enviarCorreo: enviarCorreo };
+    guardarConfig: guardarConfig, guardar: guardar, borrar: borrar, registrarNuevo: registrarNuevo, agendar: agendar, reagendar: reagendar, enviarCorreo: enviarCorreo };
   let out;
   try {
     const b = JSON.parse(e.postData.contents);
@@ -278,6 +278,40 @@ function enviarCorreo(token, id, asunto, cuerpo, desde, copiaMi, firma, adjuntar
  * Agenda en el calendario de jl.rangel. Invitar al cliente y Google Meet son opcionales
  * (sin cliente sirve como recordatorio interno en el calendario).
  */
+/** Mueve la reunión que ya existe (mismo evento y mismo Meet) y avisa a los invitados. */
+function reagendar(token, id, fecha, hora) {
+  const yo = sesion_(token), quien = nombre_(yo);
+  const sh = hoja_();
+  const row = fila_(sh, id);
+  if (row < 0) throw new Error('No encontré el registro.');
+  const r = leer_(sh.getRange(row, 1, 1, COLS.length).getValues()[0]);
+  const partes = String(r.reunion || '').split(' · ');
+  const m = partes[0].match(/^(\d{4}-\d{2}-\d{2})(?: (\d{2}:\d{2}))?/);
+  if (!m) throw new Error('Este prospecto no tiene una reunión con fecha para mover. Usa "Agendar".');
+  const tipo = partes[1] || 'Reunión', meet = partes.slice(2).join(' · ');
+  const calendario = 'jl.rangel@moldtech.mx';
+  const antes = Utilities.parseDate(m[1] + ' ' + (m[2] || '00:00'), ZONA, 'yyyy-MM-dd HH:mm');
+  const buscar = (desde, hasta, q) => (Calendar.Events.list(calendario, { timeMin: desde.toISOString(), timeMax: hasta.toISOString(), singleEvents: true, q: q, maxResults: 50 }).items || []);
+  const empresa = String(r.empresa || '').trim();
+  const coincide = ev => (meet && ev.hangoutLink && meet.indexOf(ev.hangoutLink) >= 0) || (empresa && String(ev.summary || '').indexOf(empresa) >= 0);
+  const dia = 24 * 3600 * 1000;
+  let cands = buscar(new Date(antes.getTime() - dia), new Date(antes.getTime() + 2 * dia)).filter(coincide);
+  if (!cands.length && empresa) cands = buscar(new Date(antes.getTime() - 30 * dia), new Date(antes.getTime() + 60 * dia), empresa).filter(coincide);
+  if (!cands.length) throw new Error('No encontré la reunión de ' + empresa + ' en el calendario. Muévela en Google Calendar o usa "Agendar".');
+  cands.sort((a, b) => Math.abs(new Date(a.start.dateTime || a.start.date) - antes) - Math.abs(new Date(b.start.dateTime || b.start.date) - antes));
+  const ev = cands[0];
+  const dur = ev.start.dateTime && ev.end.dateTime ? new Date(ev.end.dateTime) - new Date(ev.start.dateTime) : DURACION_MIN * 60000;
+  const inicio = Utilities.parseDate(fecha + ' ' + hora, ZONA, 'yyyy-MM-dd HH:mm');
+  const fin = new Date(inicio.getTime() + dur);
+  Calendar.Events.patch({ start: { dateTime: inicio.toISOString(), timeZone: ZONA }, end: { dateTime: fin.toISOString(), timeZone: ZONA } },
+    calendario, ev.id, { sendUpdates: (ev.attendees || []).length ? 'all' : 'none' });
+  const link = ev.hangoutLink || meet;
+  r.reunion = fecha + ' ' + hora + ' · ' + tipo + (link ? ' · ' + link : '');
+  r.etapa = 'Reunión';
+  r.estado = 'Reunión agendada';
+  return guardar_(r, 'Reunión movida: de ' + m[1] + ' ' + (m[2] || '') + ' a ' + fecha + ' ' + hora + ((ev.attendees || []).length ? ' · se avisó a los invitados' : '') + (link ? ' · mismo Meet' : ''), quien);
+}
+
 function agendar(token, id, fecha, hora, tipo, invitarProspecto, invitados, conMeet) {
   const yo = sesion_(token), quien = nombre_(yo);
   const sh = hoja_();
